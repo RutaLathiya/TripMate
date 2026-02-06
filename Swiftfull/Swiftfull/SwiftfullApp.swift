@@ -1,20 +1,20 @@
 //
-//  TripMateApp.swift
-//  TripMate
+//  SwiftfullApp.swift
+//  Swiftfull
 //
-//  Created by iMac on 26/01/26.
+//  Created by iMac on 02/02/26.
 //
 
 import SwiftUI
 import CoreData
 
 @main
-struct TripMateApp: App {
+struct SwiftfullApp: App {
     let persistenceController = PersistenceController.shared
 
     var body: some Scene {
         WindowGroup {
-            RegistrationView()
+            ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }

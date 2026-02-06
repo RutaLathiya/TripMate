@@ -11,93 +11,106 @@ import SwiftUI
 
 struct RegistrationView: View {
     
+    @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var viewModel = RegistrationViewModel()
+    @State private var navigateToLogin: Bool = false
+    @State private var showError = false
+    @State private var errorMessage = ""
     
     var body: some View {
-        ZStack {
-            // Background
-            Color.theme.accent.opacity(0.5)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 20) {
+        NavigationStack{
+            ZStack {
+                // Background
+                Color.theme.accent.opacity(0.5)
+                    .ignoresSafeArea()
                 
-                // Title
-                Text("Create Account")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding(.bottom, 20)
-                
-                // Profile Image Placeholder
-                Image(systemName: "person.circle.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 100, height: 100)
-                    .foregroundColor(Color.brown)
-                    .padding(.bottom, 20)
-                
-                // Full Name Field
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Name")
-                        .font(.headline)
-                        .foregroundColor(.gray)
+                VStack(spacing: 20) {
                     
-                    TextField("Enter your full name", text: $viewModel.fullName)
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(10)
-                        .shadow(color: .gray.opacity(0.2), radius: 5)
-                }
-                .padding(.horizontal, 30)
-                
-                // Email Field
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Email")
-                        .font(.headline)
-                        .foregroundColor(.gray)
+                    // Title
+                    Text("Create Account")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .padding(.bottom, 20)
                     
-                    TextField("Enter your email", text: $viewModel.email)
-                        .keyboardType(.emailAddress)
-                        .autocapitalization(.none)
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(10)
-                        .shadow(color: .gray.opacity(0.2), radius: 5)
-                }
-                .padding(.horizontal, 30)
-                
-                // Password Field
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Password")
-                        .font(.headline)
-                        .foregroundColor(.gray)
+                    // Profile Image Placeholder
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 100, height: 100)
+                        .foregroundColor(Color.brown)
+                        .padding(.bottom, 20)
                     
-                    SecureField("Enter your password", text: $viewModel.password)
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(10)
-                        .shadow(color: .gray.opacity(0.2), radius: 5)
-                }
-                .padding(.horizontal, 30)
-                
-                // Confirm Password Field
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Confirm Password")
-                        .font(.headline)
-                        .foregroundColor(.gray)
+                    // Full Name Field
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Name")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                        
+                        TextField("Enter your full name", text: $viewModel.name)
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .shadow(color: .gray.opacity(0.2), radius: 5)
+                    }
+                    .padding(.horizontal, 30)
                     
-                    SecureField("Confirm your password", text: $viewModel.confirmPassword)
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(10)
-                        .shadow(color: .gray.opacity(0.2), radius: 5)
-                }
-                .padding(.horizontal, 30)
-                
-                // Register Button
-                Button(action: {
-                    viewModel.register()
-                }) {
-                    Text("Register")
+                    // Email Field
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Email")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                        
+                        TextField("Enter your email", text: $viewModel.email)
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .shadow(color: .gray.opacity(0.2), radius: 5)
+                    }
+                    .padding(.horizontal, 30)
+                    
+                    // Password Field
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Password")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                        
+                        SecureField("Enter your password", text: $viewModel.password)
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .shadow(color: .gray.opacity(0.2), radius: 5)
+                    }
+                    .padding(.horizontal, 30)
+                    
+                    // Confirm Password Field
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Confirm Password")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                        
+                        SecureField("Confirm your password", text: $viewModel.confirmPassword)
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .shadow(color: .gray.opacity(0.2), radius: 5)
+                    }
+                    .padding(.horizontal, 30)
+                    
+                    // Register Button
+                    Button(action: {
+                        if viewModel.save(context: viewContext){
+                            print("✅ Registration successful!")
+                            navigateToLogin = true
+                        }else {
+                            // Show error
+                            showError = true
+                            errorMessage = "Registration failed. Email might already exist."
+                        }
+                    })
+                    {
+                        Text("Register")
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -105,28 +118,33 @@ struct RegistrationView: View {
                         .background(Color.brown)
                         .cornerRadius(10)
                         .shadow(color: .brown.opacity(0.3), radius: 10)
-                }
-                .padding(.horizontal, 30)
-                .padding(.top, 20)
-                
-                // Already have account
-                HStack {
-                    Text("Already have an account?")
-                        .foregroundColor(Color.secondaryText)
-                    
-                    Button(action: {
-                        // Navigate to login
-                    }) {
-                        Text("Login")
-                            .foregroundColor(.brown)
-                            .fontWeight(.semibold)
                     }
+                    .padding(.horizontal, 30)
+                    .padding(.top, 20)
+                    
+                    // Already have account
+                    HStack {
+                        Text("Already have an account?")
+                            .foregroundColor(Color.secondaryText)
+                        
+                        Button(action: {
+                            navigateToLogin = true
+                        }) {
+                            Text("Login")
+                                .foregroundColor(.brown)
+                                .fontWeight(.semibold)
+                            
+                        }
+                        .navigationDestination(isPresented: $navigateToLogin) {
+                            LogIn()
+                        }
+                    }
+                    .padding(.top, 10)
+                    
+                    Spacer()
                 }
-                .padding(.top, 10)
-                
-                Spacer()
+                .padding(.top, 50)
             }
-            .padding(.top, 50)
         }
     }
 }

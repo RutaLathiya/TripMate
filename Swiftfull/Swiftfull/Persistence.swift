@@ -1,8 +1,8 @@
 //
 //  Persistence.swift
-//  TripMate
+//  Swiftfull
 //
-//  Created by iMac on 26/01/26.
+//  Created by iMac on 02/02/26.
 //
 
 import CoreData
@@ -32,7 +32,7 @@ struct PersistenceController {
     let container: NSPersistentContainer
 
     init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "TripMate")
+        container = NSPersistentContainer(name: "Swiftfull")
         if inMemory {
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         }
@@ -52,10 +52,6 @@ struct PersistenceController {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         })
-        if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first{
-            print("📂 Documents directory:")
-            print(url.path)
-        }
         container.viewContext.automaticallyMergesChangesFromParent = true
     }
 }
