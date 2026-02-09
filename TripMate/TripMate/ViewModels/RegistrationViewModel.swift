@@ -11,15 +11,25 @@ import CoreData
 
 class RegistrationViewModel: ObservableObject {
     
-    @Published var name: String = ""
+    @Published var firstName: String = ""
+    @Published var lastName: String = ""
     @Published var email: String = ""
     @Published var password: String = ""
     @Published var confirmPassword: String = ""
+    @Published var phoneNo: String = ""
+    
+    
+    var name: String {
+            "\(firstName) \(lastName)"
+                .trimmingCharacters(in: .whitespaces)
+        }
+    
     
     var isValid: Bool {
         !name.isEmpty &&
         email.contains("@") &&
-        password.count >= 6
+        password.count >= 6 &&
+        phoneNo.count == 10
     }
     
     func userExists(email: String, context: NSManagedObjectContext) -> Bool{
@@ -53,6 +63,7 @@ class RegistrationViewModel: ObservableObject {
         user.setValue(name, forKey: "name")
         user.setValue(email, forKey: "email")
         user.setValue(password, forKey: "password")
+        user.setValue(phoneNo, forKey: "phoneNo")
         
         do {
             try context.save()
@@ -66,7 +77,8 @@ class RegistrationViewModel: ObservableObject {
     }
     
     func clearForm(){
-        name = ""
+        firstName = ""
+        lastName = ""
         email = ""
         password = ""
         confirmPassword = ""

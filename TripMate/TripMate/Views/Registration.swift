@@ -24,80 +24,109 @@ struct RegistrationView: View {
                 Color.theme.accent.opacity(0.5)
                     .ignoresSafeArea()
                 
-                VStack(spacing: 20) {
+                VStack(spacing: 5) {
                     
                     // Title
                     Text("Create Account")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        .padding(.bottom, 20)
+                        .padding(.bottom, 7)
                     
                     // Profile Image Placeholder
                     Image(systemName: "person.circle.fill")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 100, height: 100)
+                        .frame(width: 85, height: 85)
                         .foregroundColor(Color.brown)
-                        .padding(.bottom, 20)
+                        .padding(.bottom, 10)
                     
                     // Full Name Field
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Name")
-                            .font(.headline)
-                            .foregroundColor(.gray)
+                    HStack(spacing: 8) {
+//                        Text("Name")
+//                            .font(.headline)
+//                            .foregroundColor(.gray)
                         
-                        TextField("Enter your full name", text: $viewModel.name)
+                        TextField("First Name", text: $viewModel.firstName)
                             .padding()
                             .background(Color.white)
-                            .cornerRadius(10)
+                            .cornerRadius(20)
                             .shadow(color: .gray.opacity(0.2), radius: 5)
+                        
+            
+                            TextField("Last Name", text: $viewModel.lastName)
+                                .padding()
+                                .background(Color.white)
+                                .cornerRadius(20)
+                                .shadow(color: .gray.opacity(0.2), radius: 5)
+
                     }
                     .padding(.horizontal, 30)
-                    
+                   
                     // Email Field
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Email")
-                            .font(.headline)
-                            .foregroundColor(.gray)
+//                        Text("Email")
+//                            .font(.headline)
+//                            .foregroundColor(.gray)
                         
                         TextField("Enter your email", text: $viewModel.email)
                             .keyboardType(.emailAddress)
                             .autocapitalization(.none)
                             .padding()
                             .background(Color.white)
-                            .cornerRadius(10)
+                            .cornerRadius(20)
                             .shadow(color: .gray.opacity(0.2), radius: 5)
                     }
                     .padding(.horizontal, 30)
+                    .padding(.top, 10)
+                    
+                    
+                    //PhoneNo. Field
+                    // Email Field
+                    VStack(alignment: .leading, spacing: 8) {
+//                        Text("Email")
+//                            .font(.headline)
+//                            .foregroundColor(.gray)
+                        
+                        TextField("Enter your PhoneNo", text: $viewModel.phoneNo)
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(20)
+                            .shadow(color: .gray.opacity(0.2), radius: 5)
+                    }
+                    .padding(.horizontal, 30)
+                    .padding(.top, 10)
                     
                     // Password Field
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Password")
-                            .font(.headline)
-                            .foregroundColor(.gray)
+//                        Text("Password")
+//                            .font(.headline)
+//                            .foregroundColor(.gray)
                         
                         SecureField("Enter your password", text: $viewModel.password)
                             .padding()
                             .background(Color.white)
-                            .cornerRadius(10)
+                            .cornerRadius(20)
                             .shadow(color: .gray.opacity(0.2), radius: 5)
                     }
                     .padding(.horizontal, 30)
+                    .padding(.top, 10)
                     
                     // Confirm Password Field
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Confirm Password")
-                            .font(.headline)
-                            .foregroundColor(.gray)
+//                        Text("Confirm Password")
+//                            .font(.headline)
+//                            .foregroundColor(.gray)
                         
                         SecureField("Confirm your password", text: $viewModel.confirmPassword)
                             .padding()
                             .background(Color.white)
-                            .cornerRadius(10)
+                            .cornerRadius(20)
                             .shadow(color: .gray.opacity(0.2), radius: 5)
                     }
                     .padding(.horizontal, 30)
-                    
+                    .padding(.top, 10)
                     // Register Button
                     Button(action: {
                         if viewModel.save(context: viewContext){
@@ -116,12 +145,47 @@ struct RegistrationView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 55)
                         .background(Color.brown)
-                        .cornerRadius(10)
+                        .cornerRadius(20)
                         .shadow(color: .brown.opacity(0.3), radius: 10)
                     }
                     .padding(.horizontal, 30)
                     .padding(.top, 20)
                     
+                    
+                    VStack(alignment: .leading, spacing: 8){
+                            Text("Try Other Way")
+                            .frame(maxWidth: .infinity, alignment: .center)
+                                .foregroundColor(Color.secondaryText)
+                        Button(action: {},
+                               label: {
+                            Text("Sign Up with Google")
+                                .font(.headline)
+                                .foregroundColor(.black)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 55)
+                                .background(Color.accentColor.opacity(0.3))
+                                .overlay(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .stroke(Color.brown, lineWidth: 2)
+                                    )
+                                .shadow(color: .brown.opacity(0.3), radius: 10)
+                        })
+                        
+                        .padding(.top, 10)
+                        Button(action: {},
+                               label: {
+                            Text("Sign Up with Apple")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 55)
+                                .background(Color.black)
+                                .cornerRadius(20)
+                                .shadow(color: .brown.opacity(0.3), radius: 10)
+                        })
+                    }
+                    .padding(.horizontal, 30)
+                    .padding(.top, 10)
                     // Already have account
                     HStack {
                         Text("Already have an account?")
@@ -141,9 +205,9 @@ struct RegistrationView: View {
                     }
                     .padding(.top, 10)
                     
-                    Spacer()
+                    //Spacer()
                 }
-                .padding(.top, 50)
+                .padding(.top, 20)
             }
         }
     }
