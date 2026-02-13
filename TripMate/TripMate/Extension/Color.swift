@@ -7,11 +7,10 @@
 import SwiftUI
 
 extension Color{
-    static let theme = ColorTheme()
-}
 
-struct ColorTheme{
-    let accent = Color("AccentColor")
-    let backgroung = Color("BackgroundColor")
-    let SecondaryTextColor = Color("SecondaryTextColor")
+    static let AccentColor = Color("AccentColor")
+    static let BackgroundColor = Color("BackgroundColor")
+    static let SecondaryTextColor = Color("SecondaryTextColor")
+    static let ContainerColor = Color("ContainerColor")
+    static let BorderColor = Color("BorderColor")
 }

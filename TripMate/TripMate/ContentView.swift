@@ -84,13 +84,13 @@ import CoreData
 struct ContentView: View {
     var body: some View {
         ZStack{
-            Color.theme.backgroung
+            Color.BackgroundColor
                 .ignoresSafeArea()
             VStack{
                 Text("Accent Color")
-                    .foregroundColor(Color.theme.accent)
+                    .foregroundColor(Color.AccentColor)
                 Text("Secondary text color")
-                    .foregroundColor(Color.theme.SecondaryTextColor)
+                    .foregroundColor(Color.SecondaryTextColor)
             }
         }
     }

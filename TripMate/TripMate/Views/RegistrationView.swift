@@ -12,16 +12,17 @@ import SwiftUI
 struct RegistrationView: View {
     
     @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel = RegistrationViewModel()
     @State private var navigateToLogin: Bool = false
     @State private var showError = false
     @State private var errorMessage = ""
-    
+
     var body: some View {
         NavigationStack{
             ZStack {
                 // Background
-                Color.theme.accent.opacity(0.5)
+                Color.BackgroundColor
                     .ignoresSafeArea()
                 
                 VStack(spacing: 5) {
@@ -48,16 +49,25 @@ struct RegistrationView: View {
                         
                         TextField("First Name", text: $viewModel.firstName)
                             .padding()
-                            .background(Color.white)
+                            .background(Color.ContainerColor)
+                            //.foregroundColor(.primary)
                             .cornerRadius(20)
                             .shadow(color: .gray.opacity(0.2), radius: 5)
-                        
+                            .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
+                                )
             
                             TextField("Last Name", text: $viewModel.lastName)
                                 .padding()
-                                .background(Color.white)
+                                .background(Color.ContainerColor)
+                                //.foregroundColor(.primary)
                                 .cornerRadius(20)
                                 .shadow(color: .gray.opacity(0.2), radius: 5)
+                                .overlay(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
+                                )
 
                     }
                     .padding(.horizontal, 30)
@@ -72,9 +82,12 @@ struct RegistrationView: View {
                             .keyboardType(.emailAddress)
                             .autocapitalization(.none)
                             .padding()
-                            .background(Color.white)
+                            .background(Color("ContainerColor"))
                             .cornerRadius(20)
                             .shadow(color: .gray.opacity(0.2), radius: 5)
+                            .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)                                )
                     }
                     .padding(.horizontal, 30)
                     .padding(.top, 10)
@@ -91,9 +104,13 @@ struct RegistrationView: View {
                             .keyboardType(.emailAddress)
                             .autocapitalization(.none)
                             .padding()
-                            .background(Color.white)
+                            .background(Color("ContainerColor"))
                             .cornerRadius(20)
                             .shadow(color: .gray.opacity(0.2), radius: 5)
+                            .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
+                                )
                     }
                     .padding(.horizontal, 30)
                     .padding(.top, 10)
@@ -106,9 +123,13 @@ struct RegistrationView: View {
                         
                         SecureField("Enter your password", text: $viewModel.password)
                             .padding()
-                            .background(Color.white)
+                            .background(Color.ContainerColor)
                             .cornerRadius(20)
                             .shadow(color: .gray.opacity(0.2), radius: 5)
+                            .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
+                                )
                     }
                     .padding(.horizontal, 30)
                     .padding(.top, 10)
@@ -121,9 +142,13 @@ struct RegistrationView: View {
                         
                         SecureField("Confirm your password", text: $viewModel.confirmPassword)
                             .padding()
-                            .background(Color.white)
+                            .background(Color.ContainerColor)
                             .cornerRadius(20)
                             .shadow(color: .gray.opacity(0.2), radius: 5)
+                            .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
+                                )
                     }
                     .padding(.horizontal, 30)
                     .padding(.top, 10)
@@ -163,14 +188,15 @@ struct RegistrationView: View {
                                 .foregroundColor(.black)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 55)
+                                
                                 .background(Color.accentColor.opacity(0.3))
                                 .overlay(
                                         RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.brown, lineWidth: 2)
+                                            .stroke(Color.brown, lineWidth: 5)
                                     )
                                 .shadow(color: .brown.opacity(0.3), radius: 10)
                         })
-                        
+                        .cornerRadius(20)
                         .padding(.top, 10)
                         Button(action: {},
                                label: {

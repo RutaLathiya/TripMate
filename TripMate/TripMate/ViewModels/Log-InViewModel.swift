@@ -60,7 +60,7 @@ class LogInViewModel: ObservableObject {
         }
         
         // Fetch user from database
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "UserEntity")
         fetchRequest.predicate = NSPredicate(format: "email == %@", email)
         
         do {

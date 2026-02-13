@@ -42,7 +42,7 @@
 
 
 //
-//  Log-In.swift
+//  LogInView.swift
 //  TripMate
 //
 //  Created by iMac on 28/01/26.
@@ -52,16 +52,17 @@ import SwiftUI
 
 struct LogIn: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel = LogInViewModel()
     @State private var navigateToRegistration: Bool = false
     
-    @State private var navigateToHome = false
+    @State private var navigateToHome: Bool = false
     @State private var showError = false
     
     var body: some View {
         NavigationStack{
             ZStack{
-                Color.accent.opacity(0.5)
+                Color.background
                     .ignoresSafeArea()
                 VStack{
                     Text("Welcome Back")
@@ -85,9 +86,13 @@ struct LogIn: View {
                             .keyboardType(.emailAddress)
                             .autocapitalization(.none)
                             .padding()
-                            .background(Color.white)
-                            .cornerRadius(10)
+                            .background(Color.ContainerColor)
+                            .cornerRadius(20)
                             .shadow(color: .gray.opacity(0.2), radius: 5)
+                            .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
+                                )
                     }
                            .padding(.horizontal,30)
                     VStack(alignment: .leading
@@ -100,9 +105,13 @@ struct LogIn: View {
                             .keyboardType(.emailAddress)
                             .autocapitalization(.none)
                             .padding()
-                            .background(Color.white)
-                            .cornerRadius(10)
+                            .background(Color.ContainerColor)
+                            .cornerRadius(20)
                             .shadow(color: .gray.opacity(0.2), radius: 5)
+                            .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
+                                )
                     }
                            .padding(.horizontal,30)
                     
@@ -127,7 +136,7 @@ struct LogIn: View {
                             .frame(maxWidth: .infinity)
                             .frame(height: 55)
                             .background(Color.brown)
-                            .cornerRadius(10)
+                            .cornerRadius(20)
                             .shadow(color: .brown.opacity(0.3), radius: 10)
                     }
                     .disabled(!viewModel.isValid)

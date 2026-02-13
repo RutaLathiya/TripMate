@@ -33,7 +33,7 @@ class RegistrationViewModel: ObservableObject {
     }
     
     func userExists(email: String, context: NSManagedObjectContext) -> Bool{
-        let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
+        let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "UserEntity")
         fr.predicate = NSPredicate(format: "email == %@", email)
         
         do {
@@ -56,7 +56,7 @@ class RegistrationViewModel: ObservableObject {
             return false
         }
         
-        let entity = NSEntityDescription.entity(forEntityName: "User", in: context)!
+        let entity = NSEntityDescription.entity(forEntityName: "UserEntity", in: context)!
         let user = NSManagedObject(entity: entity, insertInto: context)
         
         user.setValue(UUID(), forKey: "uid")
