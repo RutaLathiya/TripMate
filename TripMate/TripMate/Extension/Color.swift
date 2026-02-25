@@ -13,4 +13,5 @@ extension Color{
     static let SecondaryTextColor = Color("SecondaryTextColor")
     static let ContainerColor = Color("ContainerColor")
     static let BorderColor = Color("BorderColor")
+    static let CardColor = Color("CardColor")
 }

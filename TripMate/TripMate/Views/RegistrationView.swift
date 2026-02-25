@@ -17,7 +17,7 @@ struct RegistrationView: View {
     @State private var navigateToLogin: Bool = false
     @State private var showError = false
     @State private var errorMessage = ""
-
+    
     var body: some View {
         NavigationStack{
             ZStack {

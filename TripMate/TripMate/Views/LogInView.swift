@@ -55,7 +55,6 @@ struct LogIn: View {
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel = LogInViewModel()
     @State private var navigateToRegistration: Bool = false
-    
     @State private var navigateToHome: Bool = false
     @State private var showError = false
     
@@ -171,7 +170,7 @@ struct LogIn: View {
                     Spacer()
                 }
                 .navigationDestination(isPresented: $navigateToHome) {
-                                HomeView()  
+                                HomeView()
                             }
                 .padding(.top, 50)
             }

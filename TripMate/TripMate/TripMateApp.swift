@@ -11,11 +11,13 @@ import CoreData
 @main
 struct TripMateApp: App {
     let persistenceController = PersistenceController.shared
-
+   
     var body: some Scene {
         WindowGroup {
             RegistrationView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            
+            
         }
     }
 }
