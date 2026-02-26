@@ -13,13 +13,12 @@ struct RegistrationView: View {
     
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject var SessionVM: SessionViewModel
     @StateObject private var viewModel = RegistrationViewModel()
-    @State private var navigateToLogin: Bool = false
     @State private var showError = false
     @State private var errorMessage = ""
     
     var body: some View {
-        NavigationStack{
             ZStack {
                 // Background
                 Color.BackgroundColor
@@ -156,7 +155,7 @@ struct RegistrationView: View {
                     Button(action: {
                         if viewModel.save(context: viewContext){
                             print("✅ Registration successful!")
-                            navigateToLogin = true
+                            SessionVM.login()
                         }else {
                             // Show error
                             showError = true
@@ -218,17 +217,17 @@ struct RegistrationView: View {
                             .foregroundColor(Color.secondaryText)
                         
                         Button(action: {
-                            navigateToLogin = true
+                            SessionVM.showLogIn = true
+                            
                         }) {
                             Text("Login")
                                 .foregroundColor(.brown)
                                 .fontWeight(.semibold)
                             
                         }
-                        .navigationDestination(isPresented: $navigateToLogin) {
-                            LogIn()
-                        }
+                        
                     }
+                    
                     .padding(.top, 10)
                     
                     //Spacer()
@@ -237,10 +236,10 @@ struct RegistrationView: View {
             }
         }
     }
-}
 
 #Preview {
     RegistrationView()
+        .environmentObject(SessionViewModel())
 }
 
 

@@ -53,13 +53,11 @@ import SwiftUI
 struct LogIn: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject var SessionVM: SessionViewModel
     @StateObject private var viewModel = LogInViewModel()
-    @State private var navigateToRegistration: Bool = false
-    @State private var navigateToHome: Bool = false
     @State private var showError = false
     
     var body: some View {
-        NavigationStack{
             ZStack{
                 Color.background
                     .ignoresSafeArea()
@@ -124,7 +122,8 @@ struct LogIn: View {
                     
                     Button(action: {
                        if viewModel.login(context: viewContext){
-                            navigateToHome = true
+                           print("✅ calling SessionVM.login() now")
+                           SessionVM.login()
                         } else {
                             showError = true
                         }
@@ -155,28 +154,23 @@ struct LogIn: View {
 //                                                    .fontWeight(.semibold)
 //                                            }
                         Button(action: {
-                            navigateToRegistration = true
+                            SessionVM.showLogIn = false
                         }) {
                             Text("Register")
                                 .foregroundColor(.brown)
                                 .fontWeight(.semibold)
-                        }
-                        .navigationDestination(isPresented: $navigateToRegistration) {
-                            RegistrationView()
                         }
                     }
                     .padding(.top, 10)
                     
                     Spacer()
                 }
-                .navigationDestination(isPresented: $navigateToHome) {
-                                HomeView()
-                            }
+                
                 .padding(.top, 50)
             }
         }
     }
-}
 #Preview {
     LogIn()
+        .environmentObject(SessionViewModel())
 }

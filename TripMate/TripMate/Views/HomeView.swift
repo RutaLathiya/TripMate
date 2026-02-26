@@ -88,35 +88,193 @@
 //}
 // 
 
+
+
+
+
+
+//import SwiftUI
+//
+//// MARK: - Main Home View (Tab Bar)
+//
+//struct HomeView: View {
+//    
+//    @State private var selectedTab = 0
+//    
+//    var body: some View {
+//        
+//        TabView(selection: $selectedTab) {
+//            
+//            NavigationStack{
+//                HomePageView()
+//            }
+//                .tabItem {
+//                    Label("Home", systemImage: "house.fill")
+//                }
+//                .tag(0)
+//            
+//            MapView()
+//                .tabItem {
+//                    Label("Map", systemImage: "map")
+//                }
+//                .tag(1)
+//            
+//            CreateTripView()
+//                .tabItem {
+//                    Label("Create Trip", systemImage: "plus")
+//                }
+//                .tag(2)
+//        }
+//    }
+//}
+//
+////////////////////////////////////////////////////////////////
+//
+//// MARK: - Home Page Screen
+//
+//struct HomePageView: View {
+//    
+//    let trips = ["Goa", "Manali", "Kerala", "Dubai", "Paris"]
+//    
+//    @State private var searchText = ""
+//  
+//    
+//    // 🔍 Filtered Trips
+//    var filteredTrips: [String] {
+//        if searchText.isEmpty {
+//            return trips
+//        } else {
+//            return trips.filter {
+//                $0.localizedCaseInsensitiveContains(searchText)
+//            }
+//        }
+//    }
+//    
+//    var body: some View {
+//        
+//      
+//            
+//            ZStack {
+//                Color.BackgroundColor
+//                    .ignoresSafeArea()
+//                
+//                List(filteredTrips, id: \.self) { trip in
+//                    
+//                    HStack {
+//                        Image(systemName: "airplane")
+//                            .foregroundColor(.accentColor)
+//                        
+//                        VStack(alignment: .leading) {
+//                            Text(trip)
+//                                .font(.headline)
+//                            
+//                            Text("Tap to view details")
+//                                .font(.caption)
+//                                .foregroundColor(.gray)
+//                        }
+//                    }
+//                }
+//                .listStyle(.plain)
+//            }
+//            
+//            // 🔍 Search Bar
+//            .searchable(text: $searchText, prompt: "Search trips")
+//            
+//            // 👤 Profile Button (Top Left)
+//            .toolbar {
+//                ToolbarItem(placement: .navigationBarLeading) {
+//                    NavigationLink(destination: ProfileView()) {
+//                        Image(systemName: "person.circle.fill")
+//                            .resizable()
+//                            .frame(width: 35, height: 35)
+//                            .foregroundColor(.accentColor)
+//                    }
+//                }
+//            }
+//            
+//            .navigationTitle("Home")
+//            .navigationBarTitleDisplayMode(.inline)
+//        }
+//    }
+//
+//
+////////////////////////////////////////////////////////////////
+//
+//// MARK: - Profile View
+//
+//struct profileView: View {
+//    var body: some View {
+//        VStack {
+//            Text("Profile Screen")
+//                .font(.largeTitle)
+//        }
+//        .navigationTitle("Profile")
+//    }
+//}
+//
+////////////////////////////////////////////////////////////////
+//
+//// Dummy Map View
+//
+//struct mapView: View {
+//    var body: some View {
+//        Text("Map Screen")
+//    }
+//}
+//
+//// Dummy Create Trip View
+//
+//struct createTripView: View {
+//    var body: some View {
+//        Text("Create Trip Screen")
+//    }
+//}
+//
+////////////////////////////////////////////////////////////////
+//
+//#Preview {
+//    HomeView()
+//}
+
+
+
 import SwiftUI
 
-// MARK: - Main Home View (Tab Bar)
-
+// MARK: - Main Tab View
 struct HomeView: View {
     
     @State private var selectedTab = 0
+    @EnvironmentObject var SessionVM: SessionViewModel
     
     var body: some View {
         
         TabView(selection: $selectedTab) {
             
-            HomePageView()
-                .tabItem {
-                    Label("Home", systemImage: "house.fill")
-                }
-                .tag(0)
+           
+            NavigationStack {
+                HomePageView()
+            }
+            .tabItem { Label("Home", systemImage: "house.fill") }
+            .tag(0)
             
-            MapView()
-                .tabItem {
-                    Label("Map", systemImage: "map")
-                }
-                .tag(1)
+            NavigationStack {
+                MapView()
+            }
+            .tabItem { Label("Map", systemImage: "map") }
+            .tag(1)
             
-            CreateTripView()
-                .tabItem {
-                    Label("Create Trip", systemImage: "plus")
-                }
-                .tag(2)
+            NavigationStack {
+                CreateTripView()
+            }
+            .tabItem { Label("Create Trip", systemImage: "plus") }
+            .tag(2)
+            
+            NavigationStack {
+                ProfileView()
+                    .environmentObject(SessionVM)
+            }
+            .tabItem { Label("Profile", systemImage: "person.circle") }
+            .tag(3)
         }
     }
 }
@@ -124,15 +282,11 @@ struct HomeView: View {
 //////////////////////////////////////////////////////////////
 
 // MARK: - Home Page Screen
-
 struct HomePageView: View {
     
-    let trips = ["Goa", "Manali", "Kerala", "Dubai", "Paris"]
-    
+    let trips = ["Goa", "Manali", "Kerala", "Dubai", "Paris","spiti"]
     @State private var searchText = ""
-  
     
-    // 🔍 Filtered Trips
     var filteredTrips: [String] {
         if searchText.isEmpty {
             return trips
@@ -145,14 +299,13 @@ struct HomePageView: View {
     
     var body: some View {
         
-        NavigationStack {
+        
+        ZStack {
+            Color.BackgroundColor
+                .ignoresSafeArea()
             
-            ZStack {
-                Color.BackgroundColor
-                    .ignoresSafeArea()
-                
-                List(filteredTrips, id: \.self) { trip in
-                    
+            List(filteredTrips, id: \.self) { trip in
+                NavigationLink(value: trip) {        // ✅ proper NavigationLink
                     HStack {
                         Image(systemName: "airplane")
                             .foregroundColor(.accentColor)
@@ -167,64 +320,38 @@ struct HomePageView: View {
                         }
                     }
                 }
-                .listStyle(.plain)
             }
-            
-            // 🔍 Search Bar
-            .searchable(text: $searchText, prompt: "Search trips")
-            
-            // 👤 Profile Button (Top Left)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    NavigationLink(destination: ProfileView()) {
-                        Image(systemName: "person.circle.fill")
-                            .resizable()
-                            .frame(width: 35, height: 35)
-                            .foregroundColor(.accentColor)
-                    }
-                }
-            }
-            
-            .navigationTitle("Home")
-            .navigationBarTitleDisplayMode(.inline)
+            .listStyle(.plain)
+        }
+        .searchable(text: $searchText, prompt: "Search trips")
+        .navigationTitle("Home")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(for: String.self) { trip in
+            TripDetailView(tripName: trip)          // ✅ goes to detail on tap
         }
     }
 }
 
-//////////////////////////////////////////////////////////////
 
-// MARK: - Profile View
 
-struct profileView: View {
+// MARK: - Trip Detail View
+
+struct TripDetailView: View {
+    let tripName: String
+    
     var body: some View {
-        VStack {
-            Text("Profile Screen")
+        ZStack {
+            Color.BackgroundColor
+                .ignoresSafeArea()
+            
+            Text("Details for \(tripName)")
                 .font(.largeTitle)
         }
-        .navigationTitle("Profile")
+        .navigationTitle(tripName)
     }
 }
-
-//////////////////////////////////////////////////////////////
-
-// Dummy Map View
-
-struct mapView: View {
-    var body: some View {
-        Text("Map Screen")
-    }
-}
-
-// Dummy Create Trip View
-
-struct createTripView: View {
-    var body: some View {
-        Text("Create Trip Screen")
-    }
-}
-
-//////////////////////////////////////////////////////////////
 
 #Preview {
     HomeView()
+        .environmentObject(SessionViewModel())
 }

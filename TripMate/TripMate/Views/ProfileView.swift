@@ -101,11 +101,10 @@ struct ProfileView: View {
     
     @State private var items = ["settings", "logout", "my profile"]
     @State private var showLogoutAlert = false
+    @EnvironmentObject var SessionVM: SessionViewModel
     
     var body: some View {
-        
-        NavigationStack {
-            
+                    
             ZStack {
                 Color.BackgroundColor
                     .ignoresSafeArea()
@@ -146,15 +145,20 @@ struct ProfileView: View {
                 Button("Cancel", role: .cancel) { }
                 
                 Button("Logout", role: .destructive) {
+                    SessionVM.logout()
                     performLogout()
-            
+                    print("🔴 Logout button tapped")
+                        print("🔴 isLoggedIn before: \(SessionVM.isLoggedIn)")
+                        print("🔴 showLogIn before: \(SessionVM.showLogIn)")
+                        
+                        print("🔴 isLoggedIn after: \(SessionVM.isLoggedIn)")
+                        print("🔴 showLogIn after: \(SessionVM.showLogIn)")
                 }
                 
             } message: {
                 Text("Are you sure you want to logout?")
             }
            
-        }
     }
     func performLogout() {
             print("User logged out")
@@ -163,4 +167,6 @@ struct ProfileView: View {
 
 #Preview {
     ProfileView()
+        .environmentObject(SessionViewModel()) 
+       
 }
