@@ -68,7 +68,7 @@ class RegistrationViewModel: ObservableObject {
         do {
             try context.save()
             print("✅ User saved successfully")
-            clearForm()
+            //clearForm()
             return true
         } catch {
             print("❌ Failed to save user:", error.localizedDescription)

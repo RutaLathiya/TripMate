@@ -155,7 +155,10 @@ struct RegistrationView: View {
                     Button(action: {
                         if viewModel.save(context: viewContext){
                             print("✅ Registration successful!")
-                            SessionVM.login()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                //SessionVM.login()
+                                SessionVM.showLogIn = true
+                            }
                         }else {
                             // Show error
                             showError = true

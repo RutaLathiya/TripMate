@@ -47,6 +47,7 @@ class LogInViewModel: ObservableObject {
     @Published var password: String = ""
     @Published var errorMessage: String = ""
     @Published var isAuthenticated: Bool = false
+    @Published var loggedInName: String = ""
     
     var isValid: Bool {
         email.contains("@") && !password.isEmpty
@@ -72,6 +73,8 @@ class LogInViewModel: ObservableObject {
                 
                 // Validate password
                 if storedPassword == password {
+                    let name = user.value(forKey: "name") as? String ?? email
+                    loggedInName = name  
                     print("✅ Login successful!")
                     isAuthenticated = true
                     return true

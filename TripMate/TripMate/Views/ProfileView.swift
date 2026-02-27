@@ -140,19 +140,23 @@ struct ProfileView: View {
             }
 //            .navigationTitle("Profile")
 //            .navigationBarTitleDisplayMode(.large)
+        
+            .onAppear {
+                showLogoutAlert = false
+            }
             .alert("Confirm Logout", isPresented: $showLogoutAlert) {
                 
                 Button("Cancel", role: .cancel) { }
                 
                 Button("Logout", role: .destructive) {
                     SessionVM.logout()
-                    performLogout()
-                    print("🔴 Logout button tapped")
-                        print("🔴 isLoggedIn before: \(SessionVM.isLoggedIn)")
-                        print("🔴 showLogIn before: \(SessionVM.showLogIn)")
-                        
-                        print("🔴 isLoggedIn after: \(SessionVM.isLoggedIn)")
-                        print("🔴 showLogIn after: \(SessionVM.showLogIn)")
+                    //performLogout()
+//                    print("🔴 Logout button tapped")
+//                        print("🔴 isLoggedIn before: \(SessionVM.isLoggedIn)")
+//                        print("🔴 showLogIn before: \(SessionVM.showLogIn)")
+//                        
+//                        print("🔴 isLoggedIn after: \(SessionVM.isLoggedIn)")
+//                        print("🔴 showLogIn after: \(SessionVM.showLogIn)")
                 }
                 
             } message: {
