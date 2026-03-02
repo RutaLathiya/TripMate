@@ -76,17 +76,29 @@ struct MapView: View {
             span: MKCoordinateSpan(latitudeDelta: 15, longitudeDelta: 15)
         )
     )
-    @State private var selectedMapStyle = 0          // 0=Standard 1=Hybrid 2=Satellite
+    @State private var selectedMapStyle = 0  // 0=Standard 1=Hybrid 2=Satellite
     @State private var searchText = ""
     @State private var showSearch = false
     @State private var showCompass = false
     @State private var mapRotation = 0.0
+    
+    
+    // stores current span for zoom calculations
+    @State private var currentSpan = MKCoordinateSpan(latitudeDelta: 15, longitudeDelta: 15)
+    @State private var currentCenter = CLLocationCoordinate2D(latitude: 20.5937, longitude: 78.9629)
     
     var mapStyle: MapStyle {
         switch selectedMapStyle {
         case 1: return .hybrid
         case 2: return .imagery
         default: return .standard
+        }
+    }
+    func styleIcon() -> String {
+        switch selectedMapStyle {
+        case 1: return "square.3.layers.3d"
+        case 2: return "globe"
+        default: return "map"
         }
     }
     
@@ -109,7 +121,7 @@ struct MapView: View {
             VStack(spacing: 0) {
                 HStack(spacing: 12) {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.black)
                     
                     TextField("Search places...", text: $searchText)
                         .submitLabel(.search)
@@ -120,7 +132,7 @@ struct MapView: View {
                     if !searchText.isEmpty {
                         Button(action: { searchText = "" }) {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.gray)
+                                .foregroundColor(.black)
                         }
                     }
                 }
@@ -158,69 +170,70 @@ struct MapView: View {
             .frame(maxWidth: .infinity, alignment: .trailing)
             
             // MARK: - Bottom Map Style Picker
+            // MARK: - Floating Map Style Button
             VStack {
                 Spacer()
                 
-                HStack(spacing: 0) {
-                    MapStyleButton(title: "Standard", icon: "map", isSelected: selectedMapStyle == 0) {
-                        selectedMapStyle = 0
+                HStack {
+                    Spacer()
+                    
+                    Button {
+                        selectedMapStyle = (selectedMapStyle + 1) % 3
+                    } label: {
+                        Image(systemName: styleIcon())
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.primary)
+                            .frame(width: 44, height: 44)
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(12)
+                            .shadow(color: .black.opacity(0.15), radius: 5)
                     }
-                    MapStyleButton(title: "Hybrid", icon: "map.fill", isSelected: selectedMapStyle == 1) {
-                        selectedMapStyle = 1
-                    }
-                    MapStyleButton(title: "Satellite", icon: "globe", isSelected: selectedMapStyle == 2) {
-                        selectedMapStyle = 2
-                    }
+                    .padding(.trailing, 16)
+                    .padding(.bottom, 40)
                 }
-                .background(.ultraThinMaterial)
-                .cornerRadius(15)
-                .shadow(color: .black.opacity(0.15), radius: 10)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 20)
             }
         }
-        .navigationTitle("Map")
-        .navigationBarTitleDisplayMode(.inline)
+//        .navigationTitle("Map")
+//        .navigationBarTitleDisplayMode(.inline)
     }
     
     // MARK: - Functions
     
     func goToUserLocation() {
         if let location = locationManager.userLocation {
+            currentCenter = location
+            currentSpan = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
             withAnimation {
                 position = .region(MKCoordinateRegion(
-                    center: location,
-                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                    center: currentCenter,
+                    span: currentSpan
                 ))
             }
         }
     }
-    
     func zoomIn() {
+        currentSpan = MKCoordinateSpan(
+            latitudeDelta: currentSpan.latitudeDelta / 2,
+            longitudeDelta: currentSpan.longitudeDelta / 2
+        )
         withAnimation {
-            if case .region(let region) = position {
-                position = .region(MKCoordinateRegion(
-                    center: region.center,
-                    span: MKCoordinateSpan(
-                        latitudeDelta: region.span.latitudeDelta / 2,
-                        longitudeDelta: region.span.longitudeDelta / 2
-                    )
-                ))
-            }
+            position = .region(MKCoordinateRegion(
+                center: currentCenter,
+                span: currentSpan
+            ))
         }
     }
     
     func zoomOut() {
+        currentSpan = MKCoordinateSpan(
+            latitudeDelta: min(currentSpan.latitudeDelta * 2, 180),
+            longitudeDelta: min(currentSpan.longitudeDelta * 2, 360)
+        )
         withAnimation {
-            if case .region(let region) = position {
-                position = .region(MKCoordinateRegion(
-                    center: region.center,
-                    span: MKCoordinateSpan(
-                        latitudeDelta: min(region.span.latitudeDelta * 2, 180),
-                        longitudeDelta: min(region.span.longitudeDelta * 2, 360)
-                    )
-                ))
-            }
+            position = .region(MKCoordinateRegion(
+                center: currentCenter,
+                span: currentSpan
+            ))
         }
     }
     
@@ -229,62 +242,70 @@ struct MapView: View {
         request.naturalLanguageQuery = searchText
         
         let search = MKLocalSearch(request: request)
+        
         search.start { response, error in
-            if let item = response?.mapItems.first {
-                withAnimation {
-                    position = .region(MKCoordinateRegion(
-                        center: item.placemark.coordinate,
-                        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                    ))
-                }
+            guard let item = response?.mapItems.first else { return }
+            
+            let location = item.location
+            withAnimation {
+                position = .region(
+                    MKCoordinateRegion(
+                        center: location.coordinate,
+                        span: MKCoordinateSpan(
+                            latitudeDelta: 0.05,
+                            longitudeDelta: 0.05
+                        )
+                    )
+                )
             }
+            
+            currentCenter = location.coordinate
+            currentSpan = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
         }
     }
-}
-
-// MARK: - Reusable Control Button
-struct MapControlButton: View {
-    let icon: String
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: icon)
-                .font(.system(size: 18, weight: .medium))
-                .foregroundColor(.primary)
-                .frame(width: 44, height: 44)
-                .background(.ultraThinMaterial)
-                .cornerRadius(12)
-                .shadow(color: .black.opacity(0.1), radius: 5)
-        }
-    }
-}
-
-// MARK: - Map Style Button
-struct MapStyleButton: View {
-    let title: String
-    let icon: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
+    // MARK: - Reusable Control Button
+    struct MapControlButton: View {
+        let icon: String
+        let action: () -> Void
+        
+        var body: some View {
+            Button(action: action) {
                 Image(systemName: icon)
-                    .font(.system(size: 20))
-                Text(title)
-                    .font(.caption2)
-                    .fontWeight(.medium)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.primary)
+                    .frame(width: 44, height: 44)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(12)
+                    .shadow(color: .black.opacity(0.1), radius: 5)
             }
-            .foregroundColor(isSelected ? .brown : .gray)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
-            .background(isSelected ? Color.brown.opacity(0.15) : Color.clear)
-            .cornerRadius(12)
+        }
+    }
+    
+    // MARK: - Map Style Button
+    struct MapStyleButton: View {
+        let title: String
+        let icon: String
+        let isSelected: Bool
+        let action: () -> Void
+        
+        var body: some View {
+            Button(action: action) {
+                VStack(spacing: 4) {
+                    Image(systemName: icon)
+                        .font(.system(size: 20))
+                    Text(title)
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                }
+                .foregroundColor(isSelected ? .black : .white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(isSelected ? Color.white.opacity(0.15) : Color.clear)
+                .cornerRadius(20)
+            }
         }
     }
 }
-
 #Preview {
     NavigationStack {
         MapView()
