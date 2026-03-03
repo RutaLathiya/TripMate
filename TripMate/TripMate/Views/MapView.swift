@@ -116,7 +116,19 @@ struct MapView: View {
                 MapScaleView()
             }
             .ignoresSafeArea()
-            
+            .onReceive(locationManager.$userLocation) { location in  // ✅ attached to Map
+                guard let location = location else { return }
+                if currentCenter.latitude == 20.5937 {
+                    currentCenter = location
+                    currentSpan = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                    withAnimation {
+                        position = .region(MKCoordinateRegion(
+                            center: location,
+                            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                        ))
+                    }
+                }
+            }
             // MARK: - Top Search Bar
             VStack(spacing: 0) {
                 HStack(spacing: 12) {
@@ -193,8 +205,10 @@ struct MapView: View {
                 }
             }
         }
-//        .navigationTitle("Map")
-//        .navigationBarTitleDisplayMode(.inline)
+        //        .navigationTitle("Map")
+        //        .navigationBarTitleDisplayMode(.inline)
+        
+        
     }
     
     // MARK: - Functions
@@ -242,70 +256,68 @@ struct MapView: View {
         request.naturalLanguageQuery = searchText
         
         let search = MKLocalSearch(request: request)
-        
         search.start { response, error in
             guard let item = response?.mapItems.first else { return }
             
-            let location = item.location
-            withAnimation {
-                position = .region(
-                    MKCoordinateRegion(
-                        center: location.coordinate,
-                        span: MKCoordinateSpan(
-                            latitudeDelta: 0.05,
-                            longitudeDelta: 0.05
-                        )
-                    )
-                )
-            }
+            // ✅ iOS 26 fix — use item.location directly
+            let location = item.location 
             
+            withAnimation {
+                position = .region(MKCoordinateRegion(
+                    center: location.coordinate,   // ✅ use directly, no separate variable
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                ))
+            }
             currentCenter = location.coordinate
             currentSpan = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
         }
     }
-    // MARK: - Reusable Control Button
-    struct MapControlButton: View {
-        let icon: String
-        let action: () -> Void
-        
-        var body: some View {
-            Button(action: action) {
-                Image(systemName: icon)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.primary)
-                    .frame(width: 44, height: 44)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(12)
-                    .shadow(color: .black.opacity(0.1), radius: 5)
-            }
-        }
-    }
+}
+
+
+struct MapControlButton: View {
+    let icon: String
+    let action: () -> Void
     
-    // MARK: - Map Style Button
-    struct MapStyleButton: View {
-        let title: String
-        let icon: String
-        let isSelected: Bool
-        let action: () -> Void
-        
-        var body: some View {
-            Button(action: action) {
-                VStack(spacing: 4) {
-                    Image(systemName: icon)
-                        .font(.system(size: 20))
-                    Text(title)
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                }
-                .foregroundColor(isSelected ? .black : .white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(isSelected ? Color.white.opacity(0.15) : Color.clear)
-                .cornerRadius(20)
-            }
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(.primary)
+                .frame(width: 44, height: 44)
+                .background(.ultraThinMaterial)
+                .cornerRadius(12)
+                .shadow(color: .black.opacity(0.1), radius: 5)
         }
     }
 }
+
+
+struct MapStyleButton: View {
+    let title: String
+    let icon: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                Text(title)
+                    .font(.caption2)
+                    .fontWeight(.medium)
+            }
+            .foregroundColor(isSelected ? .black : .white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(isSelected ? Color.white.opacity(0.15) : Color.clear)
+            .cornerRadius(20)
+        }
+    }
+}
+
+
 #Preview {
     NavigationStack {
         MapView()

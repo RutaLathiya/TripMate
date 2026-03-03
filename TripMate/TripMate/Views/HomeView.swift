@@ -278,6 +278,10 @@ struct HomeView: View {
             .tabItem { Label("Profile", systemImage: "person.circle") }
             .tag(3)
         }
+//        .toolbarColorScheme(.dark, for: .tabBar)
+//        .toolbarBackground(.black, for: .tabBar)
+//        .toolbarBackground(.visible, for: .tabBar)
+//        .tint(.white)
     }
 }
 
@@ -326,8 +330,8 @@ struct HomePageView: View {
             .listStyle(.plain)
         }
         .searchable(text: $searchText, prompt: "Search trips")
-        .navigationTitle("Home")
-        .navigationBarTitleDisplayMode(.inline)
+//        .navigationTitle("Home")
+//        .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(for: String.self) { trip in
             TripDetailView(tripName: trip)          // ✅ goes to detail on tap
         }
