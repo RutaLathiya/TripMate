@@ -15,6 +15,8 @@ import Combine
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     
+    private var locationUpdateCount = 0
+    
     @Published var userLocation: CLLocationCoordinate2D?
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     
@@ -27,8 +29,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        locationUpdateCount += 1
         userLocation = locations.last?.coordinate
-        print("📍 Got location: \(locations.last?.coordinate.latitude ?? 0), \(locations.last?.coordinate.longitude ?? 0)")
+        print("📍 Got location [\(locationUpdateCount)]: \(locations.last?.coordinate.latitude ?? 0), \(locations.last?.coordinate.longitude ?? 0)")
     }
     
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
