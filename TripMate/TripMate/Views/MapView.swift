@@ -59,8 +59,8 @@
 //    // stores current span for zoom calculations
 //    @State private var currentSpan = MKCoordinateSpan(latitudeDelta: 15, longitudeDelta: 15)
 //    @State private var currentCenter = CLLocationCoordinate2D(latitude: 20.5937, longitude: 78.9629)
-//    
-//    
+
+//
 //    // Navigation states
 //    @State private var showDirections = false
 //    @State private var destinationText = ""
