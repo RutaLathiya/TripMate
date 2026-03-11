@@ -101,10 +101,13 @@ struct ProfileView: View {
     
     @State private var items = ["settings", "logout", "my profile"]
     @State private var showLogoutAlert = false
+    @State private var showEditProfile = false
     @EnvironmentObject var SessionVM: SessionViewModel
+    @EnvironmentObject var profileImageManager: ProfileImageManager
+    @Environment(\.managedObjectContext) private var context
     
     var body: some View {
-                    
+        NavigationStack{
             ZStack {
                 Color.BackgroundColor
                     .ignoresSafeArea()
@@ -128,6 +131,8 @@ struct ProfileView: View {
                                     .onTapGesture {
                                         if item == "logout"{
                                             showLogoutAlert = true
+                                        } else if item == "my profile" {
+                                            showEditProfile = true
                                         }
                                     }
                             }
@@ -138,9 +143,21 @@ struct ProfileView: View {
                     Spacer()
                 }
             }
-//            .navigationTitle("Profile")
-//            .navigationBarTitleDisplayMode(.large)
-        
+            //            .navigationTitle("Profile")
+            //            .navigationBarTitleDisplayMode(.large)
+            
+            
+            .navigationDestination(isPresented: $showEditProfile)
+            {
+                 EditProfileView()
+                    .environmentObject(profileImageManager)
+                    .onDisappear{
+                        if let uid = SessionVM.currentUserUID{
+                            profileImageManager.load(uid: uid, context: context)
+                        }
+                    }
+            }
+            
             .onAppear {
                 showLogoutAlert = false
             }
@@ -151,18 +168,18 @@ struct ProfileView: View {
                 Button("Logout", role: .destructive) {
                     SessionVM.logout()
                     //performLogout()
-//                    print("🔴 Logout button tapped")
-//                        print("🔴 isLoggedIn before: \(SessionVM.isLoggedIn)")
-//                        print("🔴 showLogIn before: \(SessionVM.showLogIn)")
-//                        
-//                        print("🔴 isLoggedIn after: \(SessionVM.isLoggedIn)")
-//                        print("🔴 showLogIn after: \(SessionVM.showLogIn)")
+                    //                    print("🔴 Logout button tapped")
+                    //                        print("🔴 isLoggedIn before: \(SessionVM.isLoggedIn)")
+                    //                        print("🔴 showLogIn before: \(SessionVM.showLogIn)")
+                    //
+                    //                        print("🔴 isLoggedIn after: \(SessionVM.isLoggedIn)")
+                    //                        print("🔴 showLogIn after: \(SessionVM.showLogIn)")
                 }
                 
             } message: {
                 Text("Are you sure you want to logout?")
             }
-           
+        }
     }
     func performLogout() {
             print("User logged out")

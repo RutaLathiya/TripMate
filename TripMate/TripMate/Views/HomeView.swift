@@ -247,6 +247,9 @@ struct HomeView: View {
     
     @State private var selectedTab = 0
     @EnvironmentObject var SessionVM: SessionViewModel
+    @Environment(\.managedObjectContext) private var context
+    @EnvironmentObject var profileImageManager: ProfileImageManager
+
     
     var body: some View {
         
@@ -274,16 +277,47 @@ struct HomeView: View {
             NavigationStack {
                 ProfileView()
                     .environmentObject(SessionVM)
+                    .environmentObject(profileImageManager)
             }
-            .tabItem { Label("Profile", systemImage: "person.circle") }
+            .tabItem{
+                Label {
+                    Text("Profile")
+                } icon: {
+                    profileTabIcon
+                }
+            }
             .tag(3)
         }
+        .tabViewStyle(.automatic)
+        .tint(Color.AccentColor)
 //        .toolbarColorScheme(.dark, for: .tabBar)
 //        .toolbarBackground(.black, for: .tabBar)
 //        .toolbarBackground(.visible, for: .tabBar)
 //        .tint(.white)
-    }
+        .onAppear {
+                    // Load profile image when tab bar appears
+                    if let uid = SessionVM.currentUserUID {
+                        profileImageManager.load(uid: uid, context: context)
+                    }
+                }
+            }
+@ViewBuilder
+ private var profileTabIcon: some View {
+     if let image = profileImageManager.profileImage {
+         Image(uiImage: image)
+             .resizable()
+             .scaledToFill()
+             .frame(width: 28, height: 28)
+             .clipShape(Circle())
+     } else if let avatar = profileImageManager.profileAvatar {
+         Text(avatar)
+             .font(.system(size: 20))
+     } else {
+         Image(systemName: "person.circle")
+     }
+   }
 }
+
 
 //////////////////////////////////////////////////////////////
 
@@ -292,6 +326,8 @@ struct HomePageView: View {
     
     let trips = ["Goa", "Manali", "Kerala", "Dubai", "Paris","spiti"]
     @State private var searchText = ""
+    
+    @EnvironmentObject var profileImageManager: ProfileImageManager
     
     var filteredTrips: [String] {
         if searchText.isEmpty {

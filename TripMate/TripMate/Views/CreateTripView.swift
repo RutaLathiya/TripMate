@@ -1176,7 +1176,9 @@ struct CreateTripView: View {
                          iconName: "circle.fill", iconColor: Color(red: 0.44, green: 0.56, blue: 0.40),
                          placeholder: "Set Destination") { activeModal = "end" }
             if startLocation != nil && endLocation != nil {
-                routePreviewCard.transition(.scale(scale: 0.95).combined(with: .opacity))
+                routePreviewCard
+                    .transition(.scale(scale: 0.95).combined(with: .opacity))
+                    .padding(.bottom, 100)
             }
         }
     }
@@ -1262,20 +1264,21 @@ struct CreateTripView: View {
     private var routePreviewCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("ROUTE PREVIEW")
-                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .font(.system(size: 11, weight: .bold, design: .monospaced))
                 .foregroundColor(Color.AccentColor)
                 .kerning(2)
             routeCanvas
             HStack {
                 Text(startLocation?.name.components(separatedBy: ",").first ?? "")
                     .font(.system(size: 10, design: .monospaced)).foregroundColor(Color(red: 0.92, green: 0.75, blue: 0.08))
+                    .background(.ultraThinMaterial)
                 Spacer()
-                Text("\(stops.count) STOP\(stops.count == 1 ? "" : "S")")
+                Text("\(stops.count) STOP\(stops.count <= 1 ? "" : "S")")
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
                     .foregroundColor(Color.AccentColor)
                 Spacer()
                 Text(endLocation?.name.components(separatedBy: ",").first ?? "")
-                    .font(.system(size: 10, design: .monospaced)).foregroundColor(Color(red: 0.65, green: 0.42, blue: 0.02))
+                    .font(.system(size: 10, design: .monospaced)).foregroundColor(Color(red: 0.44, green: 0.56, blue: 0.40))
             }
         }
         .padding(16)
@@ -1322,7 +1325,7 @@ struct CreateTripView: View {
                             colors: [
                                 Color(red: 0.92, green: 0.75, blue: 0.08),
                                 Color(red: 0.80, green: 0.58, blue: 0.05),
-                                Color(red: 0.65, green: 0.42, blue: 0.02)
+                                Color(red: 0.44, green: 0.56, blue: 0.40)
                             ],
                             startPoint: .leading, endPoint: .trailing
                         ),
@@ -1338,9 +1341,9 @@ struct CreateTripView: View {
 
                 // ── End dot ───────────────────────────────
                 Circle()
-                    .fill(Color(red: 0.65, green: 0.42, blue: 0.02))
+                    .fill(Color(red: 0.44, green: 0.56, blue: 0.40))
                     .frame(width: 10, height: 10)
-                    .shadow(color: Color(red: 0.65, green: 0.42, blue: 0.02), radius: 4)
+                    .shadow(color: Color(red: 0.44, green: 0.56, blue: 0.40), radius: 4)
                     .position(x: w * 0.95, y: h * 0.2)
 
                 // ── Stop dots ─────────────────────────────
@@ -1544,13 +1547,13 @@ struct CreateTripView: View {
     // MARK: - Start Button
 
     private var startButtonBar: some View {
-        VStack(spacing: 0) {
-            LinearGradient(
-                colors: [Color.BackgroundColor.opacity(0), Color.BackgroundColor],
-                startPoint: .top, endPoint: .bottom
-            )
-            .frame(height: 40)
-            .allowsHitTesting(false)
+//        VStack(spacing: 0) {
+//            LinearGradient(
+//                colors: [Color.BackgroundColor.opacity(0), Color.BackgroundColor],
+//                startPoint: .top, endPoint: .bottom
+//            )
+//            .frame(height: 40)
+//            .allowsHitTesting(false)
 
             Button {
                 guard canStart else { return }
@@ -1559,18 +1562,60 @@ struct CreateTripView: View {
                 Text(startButtonLabel)
                     .font(.system(size: 15, weight: .heavy, design: .rounded))
                     .kerning(2)
-                    .foregroundColor(canStart ? .black : Color.AccentColor.opacity(0.2))
+                    .foregroundColor(canStart ? Color.AccentColor : Color.AccentColor.opacity(0.3))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 19)
-                    .background(startBtnBG)
-                    .cornerRadius(18)
-                    .shadow(color: canStart ? Color.AccentColor.opacity(0.4) : Color.clear, radius: 16, y: 4)
+                    .background(
+                        ZStack{
+                            Color.white.opacity(0.55)
+                            
+                            Color.BackgroundColor.opacity(0.5)
+                        }
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                   //.background(startBtnBG)
+                   // .background(.ultraThinMaterial)
+                    
+                   // .cornerRadius(18)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(Color.white.opacity(0.4),lineWidth: 1.5)
+                    )
+                    .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
+                   
             }
+//            .glassEffect(.regular.tint(Color.AccentColor.opacity(0.25)))
+//            .glassEffect(
+//                canStart
+//                   ? .regular.tint(Color.AccentColor.opacity(0.25))   // warm brown when ready
+//                   : .regular.tint(Color.AccentColor.opacity(0.08))
+//            )
+//            .shadow(color: canStart ? Color.AccentColor.opacity(0.25) : Color.clear, radius: 6 , y: 4)
+            //.background(.ultraThinMaterial)
+            //.shadow(radius: 6, y: 3)
+            
+        
+            //.glassEffect(.regular.interactive())
+    //.shadow(color: Color.AccentColor.opacity(0.15), radius: 6, y: 4)  // depth below
+            .buttonStyle(ScaleButtonStyle())
             .disabled(!canStart)
             .padding(.horizontal, 20)
-            .padding(.bottom, 36)
+            .padding(.bottom, 16)
+       // }
+        //.background(Color.BackgroundColor)
+        
+       
+
+    }
+    
+    
+    
+    struct ScaleButtonStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+                .animation(.spring(response: 0.2), value: configuration.isPressed)
         }
-        .background(Color.BackgroundColor)
     }
 
     @ViewBuilder

@@ -48,6 +48,7 @@ class LogInViewModel: ObservableObject {
     @Published var errorMessage: String = ""
     @Published var isAuthenticated: Bool = false
     @Published var loggedInName: String = ""
+    @Published var loggedInUID: UUID? = nil
     
     var isValid: Bool {
         email.contains("@") && !password.isEmpty
@@ -61,21 +62,18 @@ class LogInViewModel: ObservableObject {
         }
         
         // Fetch user from database
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "UserEntity")
+        // AFTER — use UserEntity directly
+        let fetchRequest: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()  // 👈 typed fetch
         fetchRequest.predicate = NSPredicate(format: "email == %@", email)
-        
+
         do {
             let results = try context.fetch(fetchRequest)
-            
-            if let user = results.first as? NSManagedObject {
-                // Get stored password
-                let storedPassword = user.value(forKey: "password") as? String
-                
-                // Validate password
+            if let user = results.first {                    // 👈 already UserEntity, no cast needed
+                let storedPassword = user.password
                 if storedPassword == password {
-                    let name = user.value(forKey: "name") as? String ?? email
-                    loggedInName = name  
-                    print("✅ Login successful!")
+                    loggedInName = user.name ?? email
+                    loggedInUID = user.uid                   // 👈 direct property access, no casting
+                    print("✅ Login successful! uid: \(String(describing: user.uid))")
                     isAuthenticated = true
                     return true
                 } else {

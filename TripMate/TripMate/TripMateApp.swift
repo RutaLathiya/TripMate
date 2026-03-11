@@ -12,6 +12,7 @@ import CoreData
 struct TripMateApp: App {
     let persistenceController = PersistenceController.shared
     @StateObject var SessionVM = SessionViewModel()
+    @StateObject var profileImageManager = ProfileImageManager()
    
     var body: some Scene {
         WindowGroup {
@@ -23,14 +24,17 @@ struct TripMateApp: App {
                             HomeView()
                                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                                 .environmentObject(SessionVM)   // 👈 same sessionVM everywhere
+                                .environmentObject(profileImageManager)
             } else if SessionVM.showLogIn {
                             LogIn()
                                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                                 .environmentObject(SessionVM)   // 👈 same sessionVM everywhere
+                                .environmentObject(profileImageManager)
             } else {
                 RegistrationView()
                     .environment(\.managedObjectContext, persistenceController.container.viewContext)
                     .environmentObject(SessionVM)
+                    .environmentObject(profileImageManager)
             }
         }
     }
