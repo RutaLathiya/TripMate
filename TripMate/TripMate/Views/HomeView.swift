@@ -243,80 +243,266 @@
 import SwiftUI
 
 // MARK: - Main Tab View
+//struct HomeView: View {
+//    
+//    @State private var selectedTab = 0
+//    @EnvironmentObject var SessionVM: SessionViewModel
+//    @Environment(\.managedObjectContext) private var context
+//    @EnvironmentObject var profileImageManager: ProfileImageManager
+//
+//    
+//    var body: some View {
+//        
+//        TabView(selection: $selectedTab) {
+//            
+//           
+//            NavigationStack {
+//                HomePageView()
+//            }
+//            .tabItem { Label("Home", systemImage: "house.fill") }
+//            .tag(0)
+//            
+//            NavigationStack {
+//                MapView()
+//            }
+//            .tabItem { Label("Map", systemImage: "map") }
+//            .tag(1)
+//            
+//            NavigationStack {
+//                CreateTripView()
+//            }
+//            .tabItem { Label("Create Trip", systemImage: "plus") }
+//            .tag(2)
+//            
+//            NavigationStack {
+//                ProfileView()
+//                    .environmentObject(SessionVM)
+//                    .environmentObject(profileImageManager)
+//            }
+//            .tabItem{
+//                Label {
+//                    Text("Profile")
+//                } icon: {
+//                    profileTabIcon
+//                }
+//            }
+//            .tag(3)
+//        }
+//        .tabViewStyle(.automatic)
+//        .tint(Color.AccentColor)
+////        .toolbarColorScheme(.dark, for: .tabBar)
+////        .toolbarBackground(.black, for: .tabBar)
+////        .toolbarBackground(.visible, for: .tabBar)
+////        .tint(.white)
+//        .onAppear {
+//                    // Load profile image when tab bar appears
+//                    if let uid = SessionVM.currentUserUID {
+//                        profileImageManager.load(uid: uid, context: context)
+//                    }
+//                }
+//            }
+//@ViewBuilder
+// private var profileTabIcon: some View {
+//     if let image = profileImageManager.profileImage {
+//         Image(uiImage: image)
+//             .resizable()
+//             .scaledToFill()
+//             .frame(width: 28, height: 28)
+//             .clipShape(Circle())
+//     } else if let avatar = profileImageManager.profileAvatar {
+//         Text(avatar)
+//             .font(.system(size: 20))
+//     } else {
+//         Image(systemName: "person.circle")
+//     }
+//   }
+//}
+
+
+
+
+// MARK: - Main Tab View with Custom Tab Bar
 struct HomeView: View {
     
     @State private var selectedTab = 0
     @EnvironmentObject var SessionVM: SessionViewModel
-    @Environment(\.managedObjectContext) private var context
     @EnvironmentObject var profileImageManager: ProfileImageManager
+    @Environment(\.managedObjectContext) private var context
 
-    
     var body: some View {
-        
-        TabView(selection: $selectedTab) {
+        ZStack(alignment: .bottom) {
             
-           
-            NavigationStack {
-                HomePageView()
-            }
-            .tabItem { Label("Home", systemImage: "house.fill") }
-            .tag(0)
-            
-            NavigationStack {
-                MapView()
-            }
-            .tabItem { Label("Map", systemImage: "map") }
-            .tag(1)
-            
-            NavigationStack {
-                CreateTripView()
-            }
-            .tabItem { Label("Create Trip", systemImage: "plus") }
-            .tag(2)
-            
-            NavigationStack {
-                ProfileView()
-                    .environmentObject(SessionVM)
-                    .environmentObject(profileImageManager)
-            }
-            .tabItem{
-                Label {
-                    Text("Profile")
-                } icon: {
-                    profileTabIcon
+            // ── Page Content ─────────────────────────
+            Group {
+                switch selectedTab {
+                case 0:
+                    NavigationStack { HomePageView() }
+                case 1:
+                    NavigationStack { MapView() }
+                case 2:
+                    NavigationStack { CreateTripView() }
+                        .safeAreaInset(edge: .bottom) {
+                            Color.clear.frame(height: 120)
+                        }
+                case 3:
+                    NavigationStack {
+                        ProfileView()
+                            .environmentObject(SessionVM)
+                            .environmentObject(profileImageManager)
+                    }
+                default:
+                    NavigationStack { HomePageView() }
                 }
             }
-            .tag(3)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            //.padding(.bottom, 80) // space for tab bar
+            .ignoresSafeArea(edges: .bottom)
+            .safeAreaInset(edge: .bottom){
+                Color.clear.frame(height: 100)
+            }
+            
+            // ── Custom Tab Bar ────────────────────────
+            customTabBar
+                .background(Color.clear)
         }
-        .tabViewStyle(.automatic)
-        .tint(Color.AccentColor)
-//        .toolbarColorScheme(.dark, for: .tabBar)
-//        .toolbarBackground(.black, for: .tabBar)
-//        .toolbarBackground(.visible, for: .tabBar)
-//        .tint(.white)
+        .ignoresSafeArea(edges: .bottom)
         .onAppear {
-                    // Load profile image when tab bar appears
-                    if let uid = SessionVM.currentUserUID {
-                        profileImageManager.load(uid: uid, context: context)
+            if let uid = SessionVM.currentUserUID {
+                profileImageManager.load(uid: uid, context: context)
+            }
+        }
+    }
+    
+    // MARK: - Custom Tab Bar
+    private var customTabBar: some View {
+        HStack(spacing: 0) {
+            tabBarButton(index: 0, icon: "house.fill", label: "Home")
+            tabBarButton(index: 1, icon: "map", label: "Map")
+            tabBarButton(index: 2, icon: "plus", label: "Create Trip")
+            profileTabButton  // special button for profile
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
+        .padding(.bottom, 28) // safe area padding
+        .background(
+            ZStack {
+                // glass base
+                Color.white.opacity(0.55)
+                Color.BackgroundColor.opacity(0.6)
+            }
+                .frame(height: 65)
+                .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+        )
+        .overlay(
+            // top border line
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .stroke(Color.AccentColor.opacity(0.2), lineWidth: 1)
+                .frame(height: 65)
+        )
+        .padding(.horizontal, 20)
+        .padding(.bottom, 25)
+    }
+    
+    // MARK: - Regular Tab Button
+    private func tabBarButton(index: Int, icon: String, label: String) -> some View {
+        let isActive = selectedTab == index
+        return Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedTab = index
+            }
+        } label: {
+            VStack(spacing: 0) {
+                
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: isActive ? .bold : .regular))
+                    .foregroundColor(isActive ? Color.AccentColor : Color.AccentColor.opacity(0.4))
+                    .frame(width: 28, height: 28)
+                    .scaleEffect(isActive ? 1.15 : 1.0)
+                    .animation(.spring(response: 0.3), value: isActive)
+                
+                Text(label)
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundColor(isActive ? Color.AccentColor : Color.AccentColor.opacity(0.4))
+                
+                // active indicator dot
+                Circle()
+                    .fill(Color.AccentColor)
+                    .frame(width: 4, height: 4)
+                    .opacity(isActive ? 1 : 0)
+                    .animation(.spring(response: 0.3), value: isActive)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 60)
+        }
+        .padding(.top, 15)
+    }
+    
+    // MARK: - Profile Tab Button (with pic support)
+    private var profileTabButton: some View {
+        let isActive = selectedTab == 3
+        return Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedTab = 3
+            }
+        } label: {
+            VStack(spacing: 0) {
+                Spacer()
+                // profile pic or default icon
+                ZStack {
+                    if let image = profileImageManager.profileImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 28, height: 28)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(
+                                        isActive ? Color.AccentColor : Color.AccentColor.opacity(0.3),
+                                        lineWidth: isActive ? 2 : 1
+                                    )
+                            )
+                    } else if let avatar = profileImageManager.profileAvatar {
+                        Text(avatar)
+                            .font(.system(size: 20))
+                            .frame(width: 24, height: 24)
+                            .overlay(
+                                Circle()
+                                    .stroke(
+                                        isActive ? Color.AccentColor : Color.AccentColor.opacity(0.3),
+                                        lineWidth: isActive ? 2 : 1
+                                    )
+                            )
+                    } else {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 24, weight: isActive ? .bold : .regular))
+                            .foregroundColor(isActive ? Color.AccentColor : Color.AccentColor.opacity(0.4))
                     }
                 }
+                .frame(width: 28, height: 28)
+                .scaleEffect(isActive ? 1.1 : 1.0)
+                .animation(.spring(response: 0.3), value: isActive)
+                
+                Text("Profile")
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundColor(isActive ? Color.AccentColor : Color.AccentColor.opacity(0.4))
+                    .padding(.top, 1.5)
+                
+                // active indicator dot
+                Circle()
+                    .fill(Color.AccentColor)
+                    .frame(width: 4, height: 4)
+                    .opacity(isActive ? 1 : 0)
+                    .animation(.spring(response: 0.3), value: isActive)
             }
-@ViewBuilder
- private var profileTabIcon: some View {
-     if let image = profileImageManager.profileImage {
-         Image(uiImage: image)
-             .resizable()
-             .scaledToFill()
-             .frame(width: 28, height: 28)
-             .clipShape(Circle())
-     } else if let avatar = profileImageManager.profileAvatar {
-         Text(avatar)
-             .font(.system(size: 20))
-     } else {
-         Image(systemName: "person.circle")
-     }
-   }
+            .frame(maxWidth: .infinity)
+            .frame(height: 60)
+        }
+    }
+    
 }
+
+
 
 
 //////////////////////////////////////////////////////////////
@@ -365,7 +551,7 @@ struct HomePageView: View {
             }
             .listStyle(.plain)
         }
-        .searchable(text: $searchText, prompt: "Search trips")
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search trips")
 //        .navigationTitle("Home")
 //        .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(for: String.self) { trip in
@@ -396,4 +582,5 @@ struct TripDetailView: View {
 #Preview {
     HomeView()
         .environmentObject(SessionViewModel())
+        .environmentObject(ProfileImageManager())
 }

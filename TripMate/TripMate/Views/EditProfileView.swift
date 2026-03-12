@@ -541,6 +541,8 @@ struct EditProfileView: View {
 }
 #Preview {
     EditProfileView()
+        .environmentObject(SessionViewModel())
+        .environmentObject(ProfileImageManager())
 }
 // MARK: - Camera Picker
 struct CameraPickerView: UIViewControllerRepresentable {

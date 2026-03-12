@@ -1567,7 +1567,7 @@ struct CreateTripView: View {
                     .padding(.vertical, 19)
                     .background(
                         ZStack{
-                            Color.white.opacity(0.55)
+                            Color.white.opacity(0.1)
                             
                             Color.BackgroundColor.opacity(0.5)
                         }
@@ -1600,7 +1600,7 @@ struct CreateTripView: View {
             .buttonStyle(ScaleButtonStyle())
             .disabled(!canStart)
             .padding(.horizontal, 20)
-            .padding(.bottom, 16)
+            .padding(.bottom, 120)
        // }
         //.background(Color.BackgroundColor)
         

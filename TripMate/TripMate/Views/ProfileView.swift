@@ -188,6 +188,7 @@ struct ProfileView: View {
 
 #Preview {
     ProfileView()
-        .environmentObject(SessionViewModel()) 
+        .environmentObject(SessionViewModel())
+        .environmentObject(ProfileImageManager())
        
 }
