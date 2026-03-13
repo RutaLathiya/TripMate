@@ -339,6 +339,9 @@ struct HomeView: View {
                     NavigationStack { HomePageView() }
                 case 1:
                     NavigationStack { MapView() }
+                        .safeAreaInset(edge: .bottom){
+                            Color.clear.frame(height: 100)
+                        }
                 case 2:
                     NavigationStack { CreateTripView() }
                         .safeAreaInset(edge: .bottom) {
@@ -562,22 +565,6 @@ struct HomePageView: View {
 
 
 
-// MARK: - Trip Detail View
-
-struct TripDetailView: View {
-    let tripName: String
-    
-    var body: some View {
-        ZStack {
-            Color.BackgroundColor
-                .ignoresSafeArea()
-            
-            Text("Details for \(tripName)")
-                .font(.largeTitle)
-        }
-        .navigationTitle(tripName)
-    }
-}
 
 #Preview {
     HomeView()

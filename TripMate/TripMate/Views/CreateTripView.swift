@@ -974,6 +974,7 @@
 
 import SwiftUI
 import MapKit
+import Combine
 
 struct CreateTripView: View {
 
@@ -995,6 +996,9 @@ struct CreateTripView: View {
     @State private var tripStarted    = false
     @FocusState private var packFieldFocused: Bool
 
+    
+    @StateObject private var weatherService = WeatherService()
+    
     // MARK: - Computed
 
     private var canStart: Bool {
@@ -1268,6 +1272,40 @@ struct CreateTripView: View {
                 .foregroundColor(Color.AccentColor)
                 .kerning(2)
             routeCanvas
+            
+            
+            if let weather = weatherService.currentWeather {
+                       Divider().background(Color.AccentColor.opacity(0.1))
+                       
+                       HStack {
+                           Text(weatherService.weatherEmoji(weather.weather.first?.main ?? ""))
+                               .font(.system(size: 20))
+                           VStack(alignment: .leading, spacing: 2) {
+                               Text("\(Int(weather.main.temp))°C · \(weather.weather.first?.description.capitalized ?? "")")
+                                   .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                   .foregroundColor(Color.AccentColor)
+                               Text("at destination")
+                                   .font(.system(size: 9, design: .monospaced))
+                                   .foregroundColor(Color.AccentColor.opacity(0.5))
+                           }
+                           Spacer()
+                           // Alert if any
+                           if let alert = weatherService.weatherAlert(
+                               weather.weather.first?.main ?? "",
+                               temp: weather.main.temp
+                           ) {
+                               Text(alert)
+                                   .font(.system(size: 9, design: .monospaced))
+                                   .foregroundColor(.orange)
+                           }
+                       }
+                       .padding(10)
+                       .background(Color.AccentColor.opacity(0.05))
+                       .cornerRadius(10)
+                   }
+            
+            
+            
             HStack {
                 Text(startLocation?.name.components(separatedBy: ",").first ?? "")
                     .font(.system(size: 10, design: .monospaced)).foregroundColor(Color(red: 0.92, green: 0.75, blue: 0.08))
@@ -1482,7 +1520,7 @@ struct CreateTripView: View {
         return VStack(spacing: 8) {
             HStack {
                 Text("PACKED").font(.system(size: 10, design: .monospaced))
-                    .foregroundColor(Color.ContainerColor).kerning(2)
+                    .foregroundColor(Color.AccentColor).kerning(2)
                 Spacer()
                 Text("\(checkedCount)/\(total)")
                     .font(.system(size: 10, weight: .bold, design: .monospaced))

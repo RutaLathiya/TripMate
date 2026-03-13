@@ -1194,7 +1194,7 @@ struct MapView: View {
                         .shadow(color: .black.opacity(0.12), radius: 20, x: 0, y: -5)
                 )
                 .padding(.horizontal, 16)
-                .padding(.bottom, 90)
+                .padding(.bottom, 120)
             }
         }
     }
@@ -1275,7 +1275,7 @@ struct MapView: View {
             MapControlButton(icon: "minus") { viewModel.zoomOut() }
         }
         .padding(.trailing, 16)
-        .padding(.bottom, 420)      // ✅ well above the route card
+        .padding(.bottom, 175)      // ✅ well above the route card
         .frame(maxWidth: .infinity, alignment: .trailing)
     }
 
@@ -1295,7 +1295,7 @@ struct MapView: View {
                         .shadow(color: .black.opacity(0.15), radius: 5)
                 }
                 .padding(.trailing, 16)
-                .padding(.bottom, 40)
+                .padding(.bottom, 120)
             }
         }
     }
@@ -1354,7 +1354,10 @@ struct MapView: View {
                 }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        //.interactiveDismissDisabled(false)
+        .presentationCompactAdaptation(.none)
     }
 
     // MARK: - Steps Sheet

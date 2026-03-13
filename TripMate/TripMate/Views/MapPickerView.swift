@@ -275,7 +275,7 @@ struct MapPickerView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 10)
-        .padding(.bottom, 36)
+        .padding(.bottom, 80)
     }
 
     @ViewBuilder
