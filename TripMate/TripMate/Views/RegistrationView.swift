@@ -1,12 +1,10 @@
-////
-////  Registration.swift
-////  TripMate
-////
-////  Created by iMac on 27/01/26.
-////
 //
+//  Registration.swift
+//  TripMate
 //
+//  Created by iMac on 27/01/26.
 //
+
 //import SwiftUI
 //
 //struct RegistrationView: View {
@@ -244,82 +242,7 @@
 //    RegistrationView()
 //        .environmentObject(SessionViewModel())
 //}
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-////import SwiftUI
-////
-////struct Registration: View {
-////    @State public var  mail: String = ""
-////    @State public var  username: String = ""
-////    @State public var  password: String = ""
-////    
-////    var body: some View {
-////        NavigationView{
-////            VStack{
-////                Text("Registor")
-////                    .font(.title)
-////                Form{
-////                    TextField("Enter Your E-mail Hear", text: $mail)
-////                        .frame(maxWidth: .infinity)
-////                        .frame(height: 55)
-////                        .background(Color.gray)
-////                        .padding(.horizontal)
-////                    //.cornerRadius(10)
-////                    TextField("Enter Your UserName", text: $username)
-////                        .frame(maxWidth: .infinity)
-////                        .frame(height: 55)
-////                        .background(Color.gray)
-////                        .padding(.horizontal)
-////                    TextField("Enter Your Password", text: $password)
-////                        .frame(maxWidth: .infinity)
-////                        .frame(height: 55)
-////                        .background(Color.gray)
-////                        .padding(.horizontal)
-////                    TextField("Conform Your Password", text: $password)
-////                        .frame(maxWidth: .infinity)
-////                        .frame(height: 55)
-////                        .background(Color.gray)
-////                        .padding(.horizontal)
-////                    
-////                    Button(
-////                        action: {
-////                           
-////                        },
-////                        label: {
-////                            Text("registor")
-////                                .frame(maxWidth: .infinity)
-////                                .frame(height: 35)
-////                                .cornerRadius(10)
-////                                .background(Color.accentColor)
-////                                .foregroundColor(.white)
-////                        })
-////                }
-////            }
-////        }
-////    }
-////}
-////
-////#Preview {
-////    Registration()
-////}
-//
-//
-//
-//
-//
+
 ////
 ////import SwiftUI
 ////
@@ -453,426 +376,729 @@
 
 import SwiftUI
 
+/*
+ 
+ struct RegistrationView: View {
+ 
+     // MARK: - Dependencies
+        @Environment(\.managedObjectContext) private var viewContext
+        @Environment(\.colorScheme) private var colorScheme
+        @EnvironmentObject var SessionVM: SessionViewModel
+ 
+        // MARK: - ViewModels
+        @StateObject private var viewModel   = RegistrationViewModel()
+        @StateObject private var authVM      = AuthViewModel()
+        @StateObject private var emailOTPVM  = EmailOTPViewModel()
+        @StateObject private var googleRepo  = GoogleSignInViewModel()
+ 
+        // MARK: - Local State
+        @State private var showPhoneOTPSheet = false
+        @State private var showError         = false
+        @State private var errorMessage      = ""
+ 
+     var body: some View {
+         ZStack {
+             Color.BackgroundColor.ignoresSafeArea()
+ 
+             VStack(spacing: 5) {
+ 
+                 // Title
+                 Text("Create Account")
+                     .font(.largeTitle)
+                     .fontWeight(.bold)
+                     .padding(.bottom, 7)
+ 
+                 // Profile Image
+                 Image(systemName: "person.circle.fill")
+                     .resizable()
+                     .scaledToFit()
+                     .frame(width: 85, height: 85)
+                     .foregroundColor(Color.brown)
+                     .padding(.bottom, 10)
+ 
+                 // First & Last Name
+                 HStack(spacing: 8) {
+                     TextField("First Name", text: $viewModel.firstName)
+                         .padding()
+                         .background(Color.ContainerColor)
+                         .cornerRadius(20)
+                         .shadow(color: .gray.opacity(0.2), radius: 5)
+                         .overlay(
+                             RoundedRectangle(cornerRadius: 20)
+                                 .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
+                         )
+ 
+                     TextField("Last Name", text: $viewModel.lastName)
+                         .padding()
+                         .background(Color.ContainerColor)
+                         .cornerRadius(20)
+                         .shadow(color: .gray.opacity(0.2), radius: 5)
+                         .overlay(
+                             RoundedRectangle(cornerRadius: 20)
+                                 .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
+                         )
+                 }
+                 .padding(.horizontal, 30)
+ 
+                 // ✅ Email + VERIFY button-
+                 HStack(spacing: 8) {
+                     TextField("Enter your email", text: $viewModel.email)
+                         .keyboardType(.emailAddress)
+                         .autocapitalization(.none)
+                         .padding()
+                         .background(Color("ContainerColor"))
+                         .cornerRadius(20)
+                         .shadow(color: .gray.opacity(0.2), radius: 5)
+                         .overlay(RoundedRectangle(cornerRadius: 20)
+                             .stroke(
+                                 emailOTPVM.isEmailVerified
+                                 ? Color.green.opacity(0.6)
+                                 : (colorScheme == .dark ? Color.BorderColor : Color.clear),
+                                 lineWidth: emailOTPVM.isEmailVerified ? 2 : 5
+                             ))
+                         .disabled(googleRepo.isSignedIn) // disable if Google signed in
+ 
+                     // Email VERIFY button
+                     Button {
+                         Task { await emailOTPVM.sendOTP(to: viewModel.email) }
+                     } label: {
+                         Group {
+                             if emailOTPVM.isEmailVerified || googleRepo.isSignedIn {
+                                 Image(systemName: "checkmark.circle.fill")
+                                     .font(.system(size: 20))
+                                     .foregroundColor(.green)
+                             } else if emailOTPVM.isLoading {
+                                 ProgressView().tint(.brown).frame(width: 20, height: 20)
+                             } else {
+                                 Text("VERIFY")
+                                     .font(.system(size: 12, weight: .bold))
+                                     .foregroundColor(.white)
+                                     .padding(.horizontal, 14)
+                                     .padding(.vertical, 14)
+                                     .background(viewModel.email.contains("@")
+                                                 ? Color.brown : Color.gray.opacity(0.4))
+                                     .cornerRadius(20)
+                             }
+                         }
+                     }
+                     .disabled(
+                         !viewModel.email.contains("@") ||
+                         emailOTPVM.isEmailVerified ||
+                         emailOTPVM.isLoading ||
+                         googleRepo.isSignedIn
+                     )
+                 }
+                 .padding(.horizontal, 30)
+                 .padding(.top, 10)
+ 
+                 // Email verified status
+                 if emailOTPVM.isEmailVerified {
+                     verifiedLabel("Email verified")
+                 } else if googleRepo.isSignedIn {
+                     verifiedLabel("Email verified via Google")
+                 }
+ 
+                 // ✅ Phone Number + VERIFY button inline
+                 HStack(spacing: 8) {
+                     TextField("Enter your Phone No", text: $viewModel.phoneNo)
+                         .keyboardType(.phonePad)
+                         .padding()
+                         .background(Color("ContainerColor"))
+                         .cornerRadius(20)
+                         .shadow(color: .gray.opacity(0.2), radius: 5)
+                         .overlay(
+                             RoundedRectangle(cornerRadius: 20)
+                                 .stroke(
+                                     authVM.isPhoneVerified
+                                     ? Color.green.opacity(0.6)
+                                     : (colorScheme == .dark ? Color.BorderColor : Color.clear),
+                                     lineWidth: authVM.isPhoneVerified ? 2 : 5
+                                 )
+                         )
+ 
+                     // ✅ VERIFY button — shows green tick when verified
+                     Button {
+                         // Sync phone from registration form to authVM
+                         authVM.phoneNumber = viewModel.phoneNo
+                         authVM.countryCode = "+91"
+                         DispatchQueue.main.async {
+                             showPhoneOTPSheet = true
+                             Task { await authVM.sendOTP() }
+                         }
+                     } label: {
+                         Group {
+                             if authVM.isPhoneVerified {
+                                 Image(systemName: "checkmark.circle.fill")
+                                     .font(.system(size: 20))
+                                     .foregroundColor(.green)
+                             } else if authVM.isLoading {
+                                 ProgressView()
+                                     .tint(.brown)
+                                     .frame(width: 20, height: 20)
+                             } else {
+                                 Text("VERIFY")
+                                     .font(.system(size: 12, weight: .bold))
+                                     .foregroundColor(.white)
+                                     .padding(.horizontal, 14)
+                                     .padding(.vertical, 14)
+                                     .background(viewModel.phoneNo.count >= 10 ? Color.brown : Color.gray.opacity(0.4))
+                                     .cornerRadius(20)
+                             }
+                         }
+                     }
+                     .disabled(viewModel.phoneNo.count < 10 || authVM.isPhoneVerified || authVM.isLoading)
+                 }
+                 .padding(.horizontal, 30)
+                 .padding(.top, 10)
+ 
+                 // ✅ Small status text under phone field
+                 if authVM.isPhoneVerified {
+                     HStack(spacing: 4) {
+                         Image(systemName: "checkmark.circle.fill")
+                             .font(.system(size: 11))
+                             .foregroundColor(.green)
+                         Text("Phone number verified")
+                             .font(.system(size: 11, design: .monospaced))
+                             .foregroundColor(.green)
+                     }
+                     .frame(maxWidth: .infinity, alignment: .leading)
+                     .padding(.horizontal, 34)
+                 }
+ 
+                 // Password
+                 SecureField("Enter your password", text: $viewModel.password)
+                     .padding()
+                     .background(Color.ContainerColor)
+                     .cornerRadius(20)
+                     .shadow(color: .gray.opacity(0.2), radius: 5)
+                     .overlay(
+                         RoundedRectangle(cornerRadius: 20)
+                             .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
+                     )
+                     .padding(.horizontal, 30)
+                     .padding(.top, 10)
+ 
+                 // Confirm Password
+                 SecureField("Confirm your password", text: $viewModel.confirmPassword)
+                     .padding()
+                     .background(Color.ContainerColor)
+                     .cornerRadius(20)
+                     .shadow(color: .gray.opacity(0.2), radius: 5)
+                     .overlay(
+                         RoundedRectangle(cornerRadius: 20)
+                             .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
+                     )
+                     .padding(.horizontal, 30)
+                     .padding(.top, 10)
+ 
+                 // Register Button
+                 Button(action: {
+                     // ✅ Optional: block registration if phone not verified
+                     guard authVM.isPhoneVerified else {
+                         errorMessage = "Please verify your phone number first."
+                         showError = true
+                         return
+                     }
+                     if viewModel.save(context: viewContext) {
+                         print("✅ Registration successful!")
+                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                             SessionVM.showLogIn = true
+                         }
+                     } else {
+                         showError = true
+                         errorMessage = "Registration failed. Email might already exist."
+                     }
+                 }) {
+                     Text("Register")
+                         .font(.headline)
+                         .foregroundColor(.white)
+                         .frame(maxWidth: .infinity)
+                         .frame(height: 55)
+                         .background(Color.brown)
+                         .cornerRadius(20)
+                         .shadow(color: .brown.opacity(0.3), radius: 10)
+                 }
+                 .padding(.horizontal, 30)
+                 .padding(.top, 20)
+ 
+                 // Other sign up options
+ 
+                 VStack(alignment: .leading, spacing: 8) {
+                     Text("Try Other Way")
+                         .frame(maxWidth: .infinity, alignment: .center)
+                         .foregroundColor(Color.secondaryText)
+ 
+                     Button {
+                         Task { await googleRepo.signIn(viewModel: viewModel) }
+                     } label: {
+                         HStack(spacing: 10) {
+                             Image(systemName: "globe")
+                                 .font(.system(size: 18))
+                                 .foregroundColor(.brown)
+                             Text(googleRepo.isSignedIn ? "✅ Signed in with Google" : "Sign Up with Google")
+                                 .font(.headline)
+                                 .foregroundColor(googleRepo.isSignedIn ? .green : .black)
+                         }
+                         .frame(maxWidth: .infinity).frame(height: 55)
+                         .background(Color.accentColor.opacity(0.3))
+                         .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.brown, lineWidth: 5))
+                         .shadow(color: .brown.opacity(0.3), radius: 10)
+                     }
+                     .cornerRadius(20)
+                     .padding(.top, 10)
+                     .disabled(googleRepo.isSignedIn)
+ 
+                     // Sign Up with Apple — disabled (needs paid account)
+                     Button(action: {}) {
+                         Text("Sign Up with Apple")
+                             .font(.headline).foregroundColor(.white.opacity)
+                             .frame(maxWidth: .infinity).frame(height: 55)
+                             .background(Color.black.opacity)
+                             .cornerRadius(20)
+                     }
+                     .disabled(true)
+                 }
+                 .padding(.horizontal, 30)
+                 .padding(.top, 10)
+ 
+                 HStack {
+                     Text("Already have an account?").foregroundColor(Color.secondaryText)
+                     Button(action: { SessionVM.showLogIn = true }) {
+                         Text("Login").foregroundColor(.brown).fontWeight(.semibold)
+                     }
+                 }
+                 .padding(.top, 10)
+             }
+             .padding(.top, 20)
+         }
+ 
+         // ✅ OTP Sheet — appears over registration screen
+         //        .sheet(isPresented: $showOTPSheet) {
+         //            OTPSheetView(authVM: authVM, onVerified: {
+         //                showOTPSheet = false
+         //            })
+         //        }
+ 
+         //        .sheet(isPresented: $showOTPSheet) {
+         //            OTPSheetView(
+         //                authVM: authVM,
+         //                onVerified: { showOTPSheet = false }
+         //            )
+         //        }
+ 
+ 
+         //        // Firebase auth error alert
+         //        .alert("Verification Error", isPresented: Binding(
+         //            get: { authVM.errorMessage != nil },
+         //            set: { if !$0 { authVM.errorMessage = nil } }
+         //        )) {
+         //            Button("OK", role: .cancel) { authVM.errorMessage = nil }
+         //        } message: {
+         //            Text(authVM.errorMessage ?? "")
+         //        }
+ 
+         // ✅ Phone OTP Sheet
+         .sheet(isPresented: $showPhoneOTPSheet) {
+             OTPSheetView(authVM: authVM, onVerified: {
+                 showPhoneOTPSheet = false })
+         }
+ 
+         // ✅ Email OTP Sheet
+         .sheet(isPresented: $emailOTPVM.showOTPSheet) {
+             EmailOTPSheetView(emailOTPVM: emailOTPVM)
+         }
+ 
+         // Error alerts
+         .alert("Error", isPresented: $showError) {
+             Button("OK", role: .cancel) { showError = false }
+         } message: { Text(errorMessage) }
+ 
+             .alert("Phone Error", isPresented: Binding(
+                 get: { authVM.errorMessage != nil },
+                 set: { if !$0 { authVM.errorMessage = nil } }
+             )) {
+                 Button("OK", role: .cancel) { authVM.errorMessage = nil }
+             } message: { Text(authVM.errorMessage ?? "") }
+ 
+             .alert("Email Error", isPresented: Binding(
+                 get: { emailOTPVM.errorMessage != nil },
+                 set: { if !$0 { emailOTPVM.errorMessage = nil } }
+             )) {
+                 Button("OK", role: .cancel) { emailOTPVM.errorMessage = nil }
+             } message: { Text(emailOTPVM.errorMessage ?? "") }
+ 
+             .alert("Google Error", isPresented: Binding(
+                 get: { googleRepo.errorMessage != nil },
+                 set: { if !$0 { googleRepo.errorMessage = nil } }
+             )) {
+                 Button("OK", role: .cancel) { googleRepo.errorMessage = nil }
+             } message: { Text(googleRepo.errorMessage ?? "") }
+     }
+ }
+     // MARK: - Verified Label
+ private func verifiedLabel(_ text: String) -> some View {
+     HStack(spacing: 4) {
+         Image(systemName: "checkmark.circle.fill")
+             .font(.system(size: 11))
+             .foregroundColor(.green)
+         Text(text)
+             .font(.system(size: 11, design: .monospaced))
+             .foregroundColor(.green)
+     }
+     .frame(maxWidth: .infinity, alignment: .leading)
+     .padding(.horizontal, 34)
+     }
+ 
+ 
+ #Preview {
+     RegistrationView()
+         .environmentObject(SessionViewModel())
+ }
+ 
+   RegistrationView.swift
+   TripMate
+ 
+
+ */
+
+
 struct RegistrationView: View {
 
+    // MARK: - Dependencies
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject var SessionVM: SessionViewModel
-    @StateObject private var viewModel = RegistrationViewModel()
 
-    // ✅ OTP state
-    @StateObject private var authVM = AuthViewModel()
-    @State private var showOTPSheet = false
+    // MARK: - ViewModels
+    @StateObject private var vm          = RegistrationViewModel()
+    @StateObject private var authVM      = AuthViewModel()
+    @StateObject private var emailOTPVM  = EmailOTPViewModel()
+    @StateObject private var googleVM    = GoogleSignInViewModel()
 
-    @State private var showError    = false
-    @State private var errorMessage = ""
-    
+    // MARK: - Local State
+    @State private var showPhoneOTPSheet = false
+    @State private var showError         = false
+    @State private var errorMessage      = ""
 
+    // MARK: - Body
     var body: some View {
         ZStack {
             Color.BackgroundColor.ignoresSafeArea()
-
-            VStack(spacing: 5) {
-
-                // Title
-                Text("Create Account")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding(.bottom, 7)
-
-                // Profile Image
-                Image(systemName: "person.circle.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 85, height: 85)
-                    .foregroundColor(Color.brown)
-                    .padding(.bottom, 10)
-
-                // First & Last Name
-                HStack(spacing: 8) {
-                    TextField("First Name", text: $viewModel.firstName)
-                        .padding()
-                        .background(Color.ContainerColor)
-                        .cornerRadius(20)
-                        .shadow(color: .gray.opacity(0.2), radius: 5)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
-                        )
-
-                    TextField("Last Name", text: $viewModel.lastName)
-                        .padding()
-                        .background(Color.ContainerColor)
-                        .cornerRadius(20)
-                        .shadow(color: .gray.opacity(0.2), radius: 5)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
-                        )
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 5) {
+                    headerSection
+                    nameFields
+                    emailField
+                    phoneField
+                    passwordFields
+                    registerButton
+                    otherOptionsSection
+                    alreadyHaveAccount
                 }
-                .padding(.horizontal, 30)
-
-                // Email
-                TextField("Enter your email", text: $viewModel.email)
-                    .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
-                    .padding()
-                    .background(Color("ContainerColor"))
-                    .cornerRadius(20)
-                    .shadow(color: .gray.opacity(0.2), radius: 5)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
-                    )
-                    .padding(.horizontal, 30)
-                    .padding(.top, 10)
-
-                // ✅ Phone Number + VERIFY button inline
-                HStack(spacing: 8) {
-                    TextField("Enter your Phone No", text: $viewModel.phoneNo)
-                        .keyboardType(.phonePad)
-                        .padding()
-                        .background(Color("ContainerColor"))
-                        .cornerRadius(20)
-                        .shadow(color: .gray.opacity(0.2), radius: 5)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(
-                                    authVM.isPhoneVerified
-                                        ? Color.green.opacity(0.6)
-                                        : (colorScheme == .dark ? Color.BorderColor : Color.clear),
-                                    lineWidth: authVM.isPhoneVerified ? 2 : 5
-                                )
-                        )
-
-                    // ✅ VERIFY button — shows green tick when verified
-                    Button {
-                        // Sync phone from registration form to authVM
-                        authVM.phoneNumber = viewModel.phoneNo
-                        authVM.countryCode = "+91"
-                        DispatchQueue.main.async {
-                            showOTPSheet = true
-                            Task { await authVM.sendOTP() }
-                        }
-                    } label: {
-                        Group {
-                            if authVM.isPhoneVerified {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.green)
-                            } else if authVM.isLoading {
-                                ProgressView()
-                                    .tint(.brown)
-                                    .frame(width: 20, height: 20)
-                            } else {
-                                Text("VERIFY")
-                                    .font(.system(size: 12, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 14)
-                                    .background(viewModel.phoneNo.count >= 10 ? Color.brown : Color.gray.opacity(0.4))
-                                    .cornerRadius(20)
-                            }
-                        }
-                    }
-                    .disabled(viewModel.phoneNo.count < 10 || authVM.isPhoneVerified || authVM.isLoading)
-                }
-                .padding(.horizontal, 30)
-                .padding(.top, 10)
-
-                // ✅ Small status text under phone field
-                if authVM.isPhoneVerified {
-                    HStack(spacing: 4) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 11))
-                            .foregroundColor(.green)
-                        Text("Phone number verified")
-                            .font(.system(size: 11, design: .monospaced))
-                            .foregroundColor(.green)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 34)
-                }
-
-                // Password
-                SecureField("Enter your password", text: $viewModel.password)
-                    .padding()
-                    .background(Color.ContainerColor)
-                    .cornerRadius(20)
-                    .shadow(color: .gray.opacity(0.2), radius: 5)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
-                    )
-                    .padding(.horizontal, 30)
-                    .padding(.top, 10)
-
-                // Confirm Password
-                SecureField("Confirm your password", text: $viewModel.confirmPassword)
-                    .padding()
-                    .background(Color.ContainerColor)
-                    .cornerRadius(20)
-                    .shadow(color: .gray.opacity(0.2), radius: 5)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
-                    )
-                    .padding(.horizontal, 30)
-                    .padding(.top, 10)
-
-                // Register Button
-                Button(action: {
-                    // ✅ Optional: block registration if phone not verified
-                    guard authVM.isPhoneVerified else {
-                        errorMessage = "Please verify your phone number first."
-                        showError = true
-                        return
-                    }
-                    if viewModel.save(context: viewContext) {
-                        print("✅ Registration successful!")
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                            SessionVM.showLogIn = true
-                        }
-                    } else {
-                        showError = true
-                        errorMessage = "Registration failed. Email might already exist."
-                    }
-                }) {
-                    Text("Register")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 55)
-                        .background(Color.brown)
-                        .cornerRadius(20)
-                        .shadow(color: .brown.opacity(0.3), radius: 10)
-                }
-                .padding(.horizontal, 30)
                 .padding(.top, 20)
-
-                // Other sign up options
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Try Other Way")
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .foregroundColor(Color.secondaryText)
-
-                    Button(action: {}) {
-                        Text("Sign Up with Google")
-                            .font(.headline)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 55)
-                            .background(Color.accentColor.opacity(0.3))
-                            .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.brown, lineWidth: 5))
-                            .shadow(color: .brown.opacity(0.3), radius: 10)
-                    }
-                    .cornerRadius(20)
-                    .padding(.top, 10)
-
-                    Button(action: {}) {
-                        Text("Sign Up with Apple")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 55)
-                            .background(Color.black)
-                            .cornerRadius(20)
-                            .shadow(color: .brown.opacity(0.3), radius: 10)
-                    }
-                }
-                .padding(.horizontal, 30)
-                .padding(.top, 10)
-
-                // Already have account
-                HStack {
-                    Text("Already have an account?")
-                        .foregroundColor(Color.secondaryText)
-                    Button(action: { SessionVM.showLogIn = true }) {
-                        Text("Login")
-                            .foregroundColor(.brown)
-                            .fontWeight(.semibold)
-                    }
-                }
-                .padding(.top, 10)
+                .padding(.bottom, 30)
             }
-            .padding(.top, 20)
         }
-        // ✅ OTP Sheet — appears over registration screen
-//        .sheet(isPresented: $showOTPSheet) {
-//            OTPSheetView(authVM: authVM, onVerified: {
-//                showOTPSheet = false
-//            })
-//        }
-        
-        .sheet(isPresented: $showOTPSheet) {
-            OTPSheetView(
-                authVM: authVM,
-                onVerified: { showOTPSheet = false }
-            )
+        .sheet(isPresented: $showPhoneOTPSheet) {
+            OTPSheetView(authVM: authVM, onVerified: { showPhoneOTPSheet = false })
         }
-        
-        // Error alert
+        .sheet(isPresented: $emailOTPVM.showOTPSheet) {
+            EmailOTPSheetView(emailOTPVM: emailOTPVM)
+        }
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) { showError = false }
-        } message: {
-            Text(errorMessage)
-        }
-        // Firebase auth error alert
-        .alert("Verification Error", isPresented: Binding(
+        } message: { Text(errorMessage) }
+        
+        .alert("Phone Error", isPresented: Binding(
             get: { authVM.errorMessage != nil },
             set: { if !$0 { authVM.errorMessage = nil } }
         )) {
             Button("OK", role: .cancel) { authVM.errorMessage = nil }
-        } message: {
-            Text(authVM.errorMessage ?? "")
-        }
+        } message: { Text(authVM.errorMessage ?? "") }
+        
+        .alert("Email Error", isPresented: Binding(
+            get: { emailOTPVM.errorMessage != nil },
+            set: { if !$0 { emailOTPVM.errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { emailOTPVM.errorMessage = nil }
+        } message: { Text(emailOTPVM.errorMessage ?? "") }
+        
+        .alert("Google Error", isPresented: Binding(
+            get: { googleVM.errorMessage != nil },
+            set: { if !$0 { googleVM.errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { googleVM.errorMessage = nil }
+        } message: { Text(googleVM.errorMessage ?? "") }
     }
 }
 
-// MARK: - OTP Sheet (shown over registration screen)
-// MARK: - OTP Sheet (6 visual boxes, works on iPad)
-struct OTPSheetView: View {
+// MARK: - Subviews
+private extension RegistrationView {
 
-    @ObservedObject var authVM: AuthViewModel
-    var onVerified: () -> Void
-    @FocusState private var isOTPFocused: Bool
+    // MARK: Header
+    var headerSection: some View {
+        VStack(spacing: 10) {
+            Text("Create Account")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .padding(.bottom, 7)
 
-    var body: some View {
-        ZStack {
-            Color.BackgroundColor.ignoresSafeArea()
+            Image(systemName: "person.circle.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 85, height: 85)
+                .foregroundColor(Color.brown)
+                .padding(.bottom, 10)
+        }
+    }
 
-            VStack(spacing: 28) {
+    // MARK: Name Fields
+    var nameFields: some View {
+        HStack(spacing: 8) {
+            TextField("First Name", text: $vm.firstName)
+                .styledField(colorScheme: colorScheme)
 
-                // Handle bar
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 40, height: 5)
-                    .padding(.top, 16)
+            TextField("Last Name", text: $vm.lastName)
+                .styledField(colorScheme: colorScheme)
+        }
+        .padding(.horizontal, 30)
+    }
 
-                // Header
-                VStack(spacing: 8) {
-                    Image(systemName: "lock.shield.fill")
-                        .font(.system(size: 36))
-                        .foregroundColor(.brown)
-                    Text("Verify Phone")
-                        .font(.title2).fontWeight(.bold)
-                    //Text("Enter the 6-digit code sent to\n\(authVM.countryCode)\(authVM.phoneNumber)")
-                    VStack(spacing: 4) {
-                        Text("Enter the 6-digit code sent to")
-                        Text("\(authVM.countryCode)\(authVM.phoneNumber)")
-                            .fontWeight(.semibold)
-                            .foregroundColor(.brown)
-                    }
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
+    // MARK: Email Field + VERIFY
+    var emailField: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 8) {
+                TextField("Enter your email", text: $vm.email)
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
+                    .styledField(
+                        colorScheme: colorScheme,
+                        isVerified: emailOTPVM.isEmailVerified || googleVM.isSignedIn
+                    )
+                    .disabled(googleVM.isSignedIn)
+
+                verifyButton(
+                    isVerified: emailOTPVM.isEmailVerified || googleVM.isSignedIn,
+                    isLoading: emailOTPVM.isLoading,
+                    isEnabled: vm.email.contains("@") &&
+                               !emailOTPVM.isEmailVerified &&
+                               !emailOTPVM.isLoading &&
+                               !googleVM.isSignedIn
+                ) {
+                    Task { await emailOTPVM.sendOTP(to: vm.email) }
                 }
+            }
+            .padding(.horizontal, 30)
+            .padding(.top, 10)
 
-                // ✅ 6 visual boxes over one hidden real TextField
-                ZStack {
-                    // Real TextField — invisible but receives input
-                    TextField("", text: $authVM.otpCode)
-                        .keyboardType(.numberPad)
-                        .focused($isOTPFocused)
-                        .foregroundColor(.clear)
-                        .tint(.clear)
-                        .frame(width: 1, height: 1)
-                        .opacity(0.01)
-                        .onChange(of: authVM.otpCode) {
-                            // Only allow digits, max 6
-                            let filtered = authVM.otpCode.filter { $0.isNumber }
-                            if authVM.otpCode != filtered {
-                                authVM.otpCode = filtered
-                            }
-                            if authVM.otpCode.count > 6 {
-                                authVM.otpCode = String(authVM.otpCode.prefix(6))
-                            }
-                        }
-
-                    // 6 Visual boxes
-                    HStack(spacing: 12) {
-                        ForEach(0..<6, id: \.self) { index in
-                            let digit = index < authVM.otpCode.count
-                                ? String(authVM.otpCode[authVM.otpCode.index(authVM.otpCode.startIndex, offsetBy: index)])
-                                : ""
-                            let isCurrent = index == authVM.otpCode.count
-
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.ContainerColor)
-                                    .frame(width: 46, height: 56)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(
-                                                isCurrent && isOTPFocused
-                                                    ? Color.brown
-                                                    : (!digit.isEmpty ? Color.brown.opacity(0.5) : Color.gray.opacity(0.3)),
-                                                lineWidth: isCurrent && isOTPFocused ? 2 : 1.5
-                                            )
-                                    )
-
-                                if digit.isEmpty && isCurrent && isOTPFocused {
-                                    // Blinking cursor
-                                    RoundedRectangle(cornerRadius: 1)
-                                        .fill(Color.brown)
-                                        .frame(width: 2, height: 24)
-                                } else {
-                                    Text(digit)
-                                        .font(.system(size: 22, weight: .bold, design: .monospaced))
-                                        .foregroundColor(.brown)
-                                }
-                            }
-                        }
-                    }
-                }
-                // Tap anywhere on boxes to open keyboard
-                .onTapGesture { isOTPFocused = true }
-                .onAppear { isOTPFocused = true }
-
-                // Verify button
-                Button {
-                    Task {
-                        await authVM.verifyOTP()
-                        if authVM.isPhoneVerified {
-                            onVerified()
-                        }
-                    }
-                } label: {
-                    ZStack {
-                        if authVM.isLoading {
-                            ProgressView().tint(.white)
-                        } else {
-                            Text("VERIFY")
-                                .font(.headline).foregroundColor(.white)
-                        }
-                    }
-                    .frame(maxWidth: .infinity).frame(height: 52)
-                    .background(authVM.canVerifyOTP ? Color.brown : Color.gray.opacity(0.3))
-                    .cornerRadius(20)
-                }
-                .disabled(!authVM.canVerifyOTP || authVM.isLoading)
-                .padding(.horizontal, 30)
-
-                // Resend
-                Button {
-                    authVM.otpCode = ""
-                    Task { await authVM.resendOTP() }
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "arrow.clockwise").font(.system(size: 12))
-                        Text("Resend OTP").font(.subheadline)
-                    }
-                    .foregroundColor(.brown.opacity(0.7))
-                }
-
-                Spacer()
+            if emailOTPVM.isEmailVerified {
+                verifiedLabel("Email verified")
+            } else if googleVM.isSignedIn {
+                verifiedLabel("Email verified via Google")
             }
         }
-        .presentationDetents([.medium])
-        .presentationDragIndicator(.visible)
+    }
+
+    // MARK: Phone Field + VERIFY
+    var phoneField: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 8) {
+                TextField("Enter your Phone No", text: $vm.phoneNo)
+                    .keyboardType(.phonePad)
+                    .styledField(
+                        colorScheme: colorScheme,
+                        isVerified: authVM.isPhoneVerified
+                    )
+
+                verifyButton(
+                    isVerified: authVM.isPhoneVerified,
+                    isLoading: authVM.isLoading,
+                    isEnabled: vm.phoneNo.count >= 10 &&
+                               !authVM.isPhoneVerified &&
+                               !authVM.isLoading
+                ) {
+                    authVM.phoneNumber = vm.phoneNo
+                    authVM.countryCode = "+91"
+                    DispatchQueue.main.async {
+                        showPhoneOTPSheet = true
+                        Task { await authVM.sendOTP() }
+                    }
+                }
+            }
+            .padding(.horizontal, 30)
+            .padding(.top, 10)
+
+            if authVM.isPhoneVerified {
+                verifiedLabel("Phone number verified")
+            }
+        }
+    }
+
+    // MARK: Password Fields
+    var passwordFields: some View {
+        VStack(spacing: 10) {
+            SecureField("Enter your password", text: $vm.password)
+                .styledField(colorScheme: colorScheme)
+                .padding(.horizontal, 30)
+                .padding(.top, 10)
+
+            SecureField("Confirm your password", text: $vm.confirmPassword)
+                .styledField(colorScheme: colorScheme)
+                .padding(.horizontal, 30)
+                .padding(.top, 10)
+        }
+    }
+
+    // MARK: Register Button
+    var registerButton: some View {
+        Button {
+            guard emailOTPVM.isEmailVerified || googleVM.isSignedIn else {
+                errorMessage = "Please verify your email first."
+                showError = true
+                return
+            }
+            guard authVM.isPhoneVerified else {
+                errorMessage = "Please verify your phone number first."
+                showError = true
+                return
+            }
+            if vm.save(context: viewContext) {
+                print("✅ Registration successful!")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    SessionVM.showLogIn = true
+                }
+              }
+//              else {
+//                showError = true
+//                errorMessage = "Registration failed. Email might already exist."
+//            }
+        } label: {
+            Text("Register")
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 55)
+                .background(Color.brown)
+                .cornerRadius(20)
+                .shadow(color: .brown.opacity(0.3), radius: 10)
+        }
+        .padding(.horizontal, 30)
+        .padding(.top, 20)
+    }
+
+    // MARK: Other Options
+    var otherOptionsSection: some View {
+        VStack(spacing: 8) {
+            Text("Try Other Way")
+                .frame(maxWidth: .infinity, alignment: .center)
+                .foregroundColor(Color.secondaryText)
+
+            Button {
+                Task { await googleVM.signIn(viewModel: vm) }
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "globe").font(.system(size: 18)).foregroundColor(.brown)
+                    Text(googleVM.isSignedIn ? "✅ Signed in with Google" : "Sign Up with Google")
+                        .font(.headline)
+                        .foregroundColor(googleVM.isSignedIn ? .green : .black)
+                }
+                .frame(maxWidth: .infinity).frame(height: 55)
+                .background(Color.accentColor.opacity(0.3))
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.brown, lineWidth: 5))
+                .shadow(color: .brown.opacity(0.3), radius: 10)
+            }
+            .cornerRadius(20)
+            .padding(.top, 10)
+            .disabled(googleVM.isSignedIn)
+
+            Button(action: {}) {
+                Text("Sign Up with Apple")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity).frame(height: 55)
+                    .background(Color.black)
+                    .cornerRadius(20)
+            }
+            .disabled(true)
+        }
+        .padding(.horizontal, 30)
+        .padding(.top, 10)
+    }
+
+    // MARK: Already Have Account
+    var alreadyHaveAccount: some View {
+        HStack {
+            Text("Already have an account?").foregroundColor(Color.secondaryText)
+            Button { SessionVM.showLogIn = true } label: {
+                Text("Login").foregroundColor(.brown).fontWeight(.semibold)
+            }
+        }
+        .padding(.top, 10)
+    }
+
+    // MARK: - Reusable VERIFY Button
+    func verifyButton(
+        isVerified: Bool,
+        isLoading: Bool,
+        isEnabled: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            if isVerified {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.green)
+            } else if isLoading {
+                ProgressView().tint(.brown).frame(width: 20, height: 20)
+            } else {
+                Text("VERIFY")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 14)
+                    .background(isEnabled ? Color.brown : Color.gray.opacity(0.4))
+                    .cornerRadius(20)
+            }
+        }
+        .disabled(!isEnabled || isVerified || isLoading)
+    }
+
+    // MARK: - Verified Label
+    func verifiedLabel(_ text: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 11))
+                .foregroundColor(.green)
+            Text(text)
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundColor(.green)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 34)
     }
 }
 
+// MARK: - TextField Style Helper
+private extension View {
+    func styledField(colorScheme: ColorScheme, isVerified: Bool = false) -> some View {
+        self
+            .padding()
+            .background(Color.ContainerColor)
+            .cornerRadius(20)
+            .shadow(color: .gray.opacity(0.2), radius: 5)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(
+                        isVerified
+                            ? Color.green.opacity(0.6)
+                            : (colorScheme == .dark ? Color.BorderColor : Color.clear),
+                        lineWidth: isVerified ? 2 : 5
+                    )
+            )
+    }
+}
+
+// MARK: - Preview
 #Preview {
     RegistrationView()
         .environmentObject(SessionViewModel())
