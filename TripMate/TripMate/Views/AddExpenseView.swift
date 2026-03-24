@@ -8,240 +8,36 @@
 import SwiftUI
 
 struct AddExpenseView: View {
-    
-    @ObservedObject var store: ExpenseStore
-    let tripMembers: [String]
+
+    @StateObject private var vm: AddExpenseViewModel
     @Environment(\.dismiss) private var dismiss
-    
-    // form fields
-    @State private var title = ""
-    @State private var amount = ""
-    @State private var category: ExpenseCategory = .food
-    @State private var date = Date()
-    @State private var payerName = ""
-    @State private var selectedMembers: Set<String> = []
-    @State private var splitType: SplitType = .equal
-    @State private var customAmounts: [String: String] = [:]
-    @State private var notes = ""
-    
-    private var amountDouble: Double { Double(amount) ?? 0 }
-    
-    private var canSave: Bool {
-        !title.trimmingCharacters(in: .whitespaces).isEmpty &&
-        amountDouble > 0 &&
-        !payerName.isEmpty &&
-        !selectedMembers.isEmpty
+
+    // MARK: - Init
+    init(store: ExpenseStore, tripMembers: [String]) {
+        _vm = StateObject(wrappedValue: AddExpenseViewModel(store: store, tripMembers: tripMembers))
     }
-    
-    private var equalShare: Double {
-        guard selectedMembers.count > 0 else { return 0 }
-        return amountDouble / Double(selectedMembers.count)
-    }
-    
+
+    // MARK: - Body
     var body: some View {
         ZStack {
             Color.BackgroundColor.ignoresSafeArea()
-            
+
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
-                    
-                    // Title
-                    fieldCard(label: "EXPENSE TITLE") {
-                        TextField("e.g. Hotel in Goa", text: $title)
-                            .font(.system(size: 14, design: .monospaced))
-                            .foregroundColor(Color.AccentColor)
+
+                    titleField
+                    amountField
+                    categoryField
+                    dateField
+                    payerField
+                    splitBetweenField
+
+                    if !vm.selectedMembers.isEmpty {
+                        splitTypeField
                     }
-                    
-                    // Amount
-                    fieldCard(label: "AMOUNT (₹)") {
-                        HStack {
-                            Text("₹")
-                                .font(.system(size: 20, weight: .bold, design: .monospaced))
-                                .foregroundColor(Color.AccentColor)
-                            TextField("0.00", text: $amount)
-                                .font(.system(size: 28, weight: .bold, design: .monospaced))
-                                .foregroundColor(Color.AccentColor)
-                                .keyboardType(.decimalPad)
-                        }
-                    }
-                    
-                    // Category
-                    fieldCard(label: "CATEGORY") {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 10) {
-                                ForEach(ExpenseCategory.allCases, id: \.self) { cat in
-                                    categoryChip(cat)
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Date
-                    fieldCard(label: "DATE") {
-                        DatePicker("", selection: $date, displayedComponents: .date)
-                            .datePickerStyle(.compact)
-                            .tint(Color.AccentColor)
-                            .labelsHidden()
-                    }
-                    
-                    // Payer
-                    fieldCard(label: "WHO PAID?") {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 10) {
-                                ForEach(tripMembers, id: \.self) { member in
-                                    memberChip(
-                                        name: member,
-                                        isSelected: payerName == member,
-                                        color: Color.AccentColor
-                                    ) {
-                                        payerName = member
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Members involved
-                    fieldCard(label: "SPLIT BETWEEN") {
-                        VStack(spacing: 10) {
-                            // Select all button
-                            HStack {
-                                Button {
-                                    if selectedMembers.count == tripMembers.count {
-                                        selectedMembers = []
-                                    } else {
-                                        selectedMembers = Set(tripMembers)
-                                    }
-                                } label: {
-                                    Text(selectedMembers.count == tripMembers.count ? "DESELECT ALL" : "SELECT ALL")
-                                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                                        .foregroundColor(Color.AccentColor)
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 6)
-                                        .background(Color.AccentColor.opacity(0.1))
-                                        .cornerRadius(8)
-                                }
-                                Spacer()
-                            }
-                            
-                            FlowLayout(spacing: 8) {
-                                ForEach(tripMembers, id: \.self) { member in
-                                    memberChip(
-                                        name: member,
-                                        isSelected: selectedMembers.contains(member),
-                                        color: Color.AccentColor
-                                    ) {
-                                        if selectedMembers.contains(member) {
-                                            selectedMembers.remove(member)
-                                        } else {
-                                            selectedMembers.insert(member)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Split type
-                    if !selectedMembers.isEmpty {
-                        fieldCard(label: "SPLIT TYPE") {
-                            VStack(spacing: 12) {
-                                Picker("Split Type", selection: $splitType) {
-                                    ForEach(SplitType.allCases, id: \.self) { type in
-                                        Text(type.rawValue).tag(type)
-                                    }
-                                }
-                                .pickerStyle(.segmented)
-                                .tint(Color.AccentColor)
-                                
-                                if splitType == .equal {
-                                    // Equal split preview
-                                    HStack {
-                                        Image(systemName: "equal.circle.fill")
-                                            .foregroundColor(Color.AccentColor.opacity(0.6))
-                                        Text("Each person pays ₹\(String(format: "%.2f", equalShare))")
-                                            .font(.system(size: 12, design: .monospaced))
-                                            .foregroundColor(Color.AccentColor.opacity(0.7))
-                                        Spacer()
-                                    }
-                                    .padding(10)
-                                    .background(Color.AccentColor.opacity(0.05))
-                                    .cornerRadius(8)
-                                    
-                                } else {
-                                    // Custom split inputs
-                                    VStack(spacing: 8) {
-                                        ForEach(Array(selectedMembers).sorted(), id: \.self) { member in
-                                            HStack {
-                                                Text(member)
-                                                    .font(.system(size: 12, design: .monospaced))
-                                                    .foregroundColor(Color.AccentColor)
-                                                Spacer()
-                                                Text("₹")
-                                                    .font(.system(size: 13, design: .monospaced))
-                                                    .foregroundColor(Color.AccentColor.opacity(0.6))
-                                                TextField("0.00", text: Binding(
-                                                    get: { customAmounts[member] ?? "" },
-                                                    set: { customAmounts[member] = $0 }
-                                                ))
-                                                .font(.system(size: 13, weight: .bold, design: .monospaced))
-                                                .foregroundColor(Color.AccentColor)
-                                                .keyboardType(.decimalPad)
-                                                .frame(width: 80)
-                                                .multilineTextAlignment(.trailing)
-                                            }
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 8)
-                                            .background(Color.AccentColor.opacity(0.05))
-                                            .cornerRadius(8)
-                                        }
-                                        
-                                        // Custom total validation
-                                        let customTotal = customAmounts.values.compactMap { Double($0) }.reduce(0, +)
-                                        let diff = abs(customTotal - amountDouble)
-                                        HStack {
-                                            Text("Total: ₹\(String(format: "%.2f", customTotal))")
-                                                .font(.system(size: 11, design: .monospaced))
-                                            Spacer()
-                                            if diff < 0.01 {
-                                                Label("Balanced", systemImage: "checkmark.circle.fill")
-                                                    .font(.system(size: 11, design: .monospaced))
-                                                    .foregroundColor(.green)
-                                            } else {
-                                                Text("₹\(String(format: "%.2f", diff)) remaining")
-                                                    .font(.system(size: 11, design: .monospaced))
-                                                    .foregroundColor(.orange)
-                                            }
-                                        }
-                                        .foregroundColor(Color.AccentColor.opacity(0.6))
-                                        .padding(.horizontal, 4)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Notes
-                    fieldCard(label: "NOTES (OPTIONAL)") {
-                        TextField("Any extra details...", text: $notes, axis: .vertical)
-                            .font(.system(size: 13, design: .monospaced))
-                            .foregroundColor(Color.AccentColor)
-                            .lineLimit(3)
-                    }
-                    
-                    // Save button
-                    Button { saveExpense() } label: {
-                        Text("SAVE EXPENSE")
-                            .font(.system(size: 14, weight: .bold, design: .monospaced))
-                            .kerning(2)
-                            .foregroundColor(canSave ? .white : Color.AccentColor.opacity(0.3))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                            .background(canSave ? Color.AccentColor : Color.AccentColor.opacity(0.1))
-                            .cornerRadius(16)
-                    }
-                    .disabled(!canSave)
-                    .padding(.bottom, 40)
+
+                    notesField
+                    saveButton
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
@@ -256,15 +52,218 @@ struct AddExpenseView: View {
                     .foregroundColor(Color.AccentColor)
             }
         }
-        .onAppear {
-            // pre-select all members by default
-            selectedMembers = Set(tripMembers)
-            payerName = tripMembers.first ?? ""
+    }
+}
+
+// MARK: - Subviews
+private extension AddExpenseView {
+
+    var titleField: some View {
+        fieldCard(label: "EXPENSE TITLE") {
+            TextField("e.g. Hotel in Goa", text: $vm.title)
+                .font(.system(size: 14, design: .monospaced))
+                .foregroundColor(Color.AccentColor)
         }
     }
-    
-    // MARK: - Field Card
-    private func fieldCard<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
+
+    var amountField: some View {
+        fieldCard(label: "AMOUNT (₹)") {
+            HStack {
+                Text("₹")
+                    .font(.system(size: 20, weight: .bold, design: .monospaced))
+                    .foregroundColor(Color.AccentColor)
+                TextField("0.00", text: $vm.amount)
+                    .font(.system(size: 28, weight: .bold, design: .monospaced))
+                    .foregroundColor(Color.AccentColor)
+                    .keyboardType(.decimalPad)
+            }
+        }
+    }
+
+    var categoryField: some View {
+        fieldCard(label: "CATEGORY") {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(ExpenseCategory.allCases, id: \.self) { cat in
+                        categoryChip(cat)
+                    }
+                }
+            }
+        }
+    }
+
+    var dateField: some View {
+        fieldCard(label: "DATE") {
+            DatePicker("", selection: $vm.date, displayedComponents: .date)
+                .datePickerStyle(.compact)
+                .tint(Color.AccentColor)
+                .labelsHidden()
+        }
+    }
+
+    var payerField: some View {
+        fieldCard(label: "WHO PAID?") {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(vm.tripMembers, id: \.self) { member in
+                        memberChip(
+                            name: member,
+                            isSelected: vm.payerName == member,
+                            color: Color.AccentColor
+                        ) {
+                            vm.selectPayer(member)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    var splitBetweenField: some View {
+        fieldCard(label: "SPLIT BETWEEN") {
+            VStack(spacing: 10) {
+                HStack {
+                    Button {
+                        vm.toggleSelectAll()
+                    } label: {
+                        Text(vm.allMembersSelected ? "DESELECT ALL" : "SELECT ALL")
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .foregroundColor(Color.AccentColor)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.AccentColor.opacity(0.1))
+                            .cornerRadius(8)
+                    }
+                    Spacer()
+                }
+
+                FlowLayout(spacing: 8) {
+                    ForEach(vm.tripMembers, id: \.self) { member in
+                        memberChip(
+                            name: member,
+                            isSelected: vm.selectedMembers.contains(member),
+                            color: Color.AccentColor
+                        ) {
+                            vm.toggleMember(member)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    var splitTypeField: some View {
+        fieldCard(label: "SPLIT TYPE") {
+            VStack(spacing: 12) {
+                Picker("Split Type", selection: $vm.splitType) {
+                    ForEach(SplitType.allCases, id: \.self) { type in
+                        Text(type.rawValue).tag(type)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .tint(Color.AccentColor)
+
+                if vm.splitType == .equal {
+                    equalSplitPreview
+                } else {
+                    customSplitInputs
+                }
+            }
+        }
+    }
+
+    var equalSplitPreview: some View {
+        HStack {
+            Image(systemName: "equal.circle.fill")
+                .foregroundColor(Color.AccentColor.opacity(0.6))
+            Text("Each person pays ₹\(String(format: "%.2f", vm.equalShare))")
+                .font(.system(size: 12, design: .monospaced))
+                .foregroundColor(Color.AccentColor.opacity(0.7))
+            Spacer()
+        }
+        .padding(10)
+        .background(Color.AccentColor.opacity(0.05))
+        .cornerRadius(8)
+    }
+
+    var customSplitInputs: some View {
+        VStack(spacing: 8) {
+            ForEach(Array(vm.selectedMembers).sorted(), id: \.self) { member in
+                HStack {
+                    Text(member)
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundColor(Color.AccentColor)
+                    Spacer()
+                    Text("₹")
+                        .font(.system(size: 13, design: .monospaced))
+                        .foregroundColor(Color.AccentColor.opacity(0.6))
+                    TextField("0.00", text: Binding(
+                        get: { vm.customAmounts[member] ?? "" },
+                        set: { vm.customAmounts[member] = $0 }
+                    ))
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .foregroundColor(Color.AccentColor)
+                    .keyboardType(.decimalPad)
+                    .frame(width: 80)
+                    .multilineTextAlignment(.trailing)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.AccentColor.opacity(0.05))
+                .cornerRadius(8)
+            }
+
+            // Validation row
+            HStack {
+                Text("Total: ₹\(String(format: "%.2f", vm.customTotal))")
+                    .font(.system(size: 11, design: .monospaced))
+                Spacer()
+                if vm.isCustomBalanced {
+                    Label("Balanced", systemImage: "checkmark.circle.fill")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundColor(.green)
+                } else {
+                    Text("₹\(String(format: "%.2f", vm.customDifference)) remaining")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundColor(.orange)
+                }
+            }
+            .foregroundColor(Color.AccentColor.opacity(0.6))
+            .padding(.horizontal, 4)
+        }
+    }
+
+    var notesField: some View {
+        fieldCard(label: "NOTES (OPTIONAL)") {
+            TextField("Any extra details...", text: $vm.notes, axis: .vertical)
+                .font(.system(size: 13, design: .monospaced))
+                .foregroundColor(Color.AccentColor)
+                .lineLimit(3)
+        }
+    }
+
+    var saveButton: some View {
+        Button {
+            vm.saveExpense { dismiss() }
+        } label: {
+            Text("SAVE EXPENSE")
+                .font(.system(size: 14, weight: .bold, design: .monospaced))
+                .kerning(2)
+                .foregroundColor(vm.canSave ? .white : Color.AccentColor.opacity(0.3))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 18)
+                .background(vm.canSave ? Color.AccentColor : Color.AccentColor.opacity(0.1))
+                .cornerRadius(16)
+        }
+        .disabled(!vm.canSave)
+        .padding(.bottom, 40)
+    }
+}
+
+// MARK: - Reusable Components
+private extension AddExpenseView {
+
+    func fieldCard<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(label)
                 .font(.system(size: 10, weight: .bold, design: .monospaced))
@@ -280,11 +279,10 @@ struct AddExpenseView: View {
                 .stroke(Color.AccentColor.opacity(0.15), lineWidth: 1)
         )
     }
-    
-    // MARK: - Category Chip
-    private func categoryChip(_ cat: ExpenseCategory) -> some View {
-        let isSelected = category == cat
-        return Button { category = cat } label: {
+
+    func categoryChip(_ cat: ExpenseCategory) -> some View {
+        let isSelected = vm.category == cat
+        return Button { vm.category = cat } label: {
             HStack(spacing: 6) {
                 Image(systemName: cat.icon)
                     .font(.system(size: 11))
@@ -302,9 +300,8 @@ struct AddExpenseView: View {
             )
         }
     }
-    
-    // MARK: - Member Chip
-    private func memberChip(name: String, isSelected: Bool, color: Color, action: @escaping () -> Void) -> some View {
+
+    func memberChip(name: String, isSelected: Bool, color: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 6) {
                 ZStack {
@@ -329,46 +326,19 @@ struct AddExpenseView: View {
             )
         }
     }
-    
-    // MARK: - Save
-    private func saveExpense() {
-        var members: [ExpenseMember] = selectedMembers.sorted().map { name in
-            let share: Double
-            if splitType == .equal {
-                share = equalShare
-            } else {
-                share = Double(customAmounts[name] ?? "0") ?? 0
-            }
-            return ExpenseMember(name: name, shareAmount: share, isPaid: name == payerName)
-        }
-        
-        let expense = Expense(
-            title: title.trimmingCharacters(in: .whitespaces),
-            amount: amountDouble,
-            category: category,
-            date: date,
-            payerName: payerName,
-            members: members,
-            splitType: splitType,
-            notes: notes
-        )
-        
-        store.addExpense(expense)
-        dismiss()
-    }
 }
 
 // MARK: - Flow Layout (wrapping chips)
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
-    
+
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let rows = computeRows(proposal: proposal, subviews: subviews)
         let height = rows.map { $0.map { $0.sizeThatFits(.unspecified).height }.max() ?? 0 }
             .reduce(0) { $0 + $1 + spacing } - spacing
         return CGSize(width: proposal.width ?? 0, height: max(height, 0))
     }
-    
+
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         let rows = computeRows(proposal: proposal, subviews: subviews)
         var y = bounds.minY
@@ -383,7 +353,7 @@ struct FlowLayout: Layout {
             y += rowHeight + spacing
         }
     }
-    
+
     private func computeRows(proposal: ProposedViewSize, subviews: Subviews) -> [[LayoutSubview]] {
         var rows: [[LayoutSubview]] = [[]]
         var x: CGFloat = 0
@@ -401,10 +371,10 @@ struct FlowLayout: Layout {
     }
 }
 
+// MARK: - Preview
 #Preview {
     AddExpenseView(
         store: ExpenseStore(),
-            tripMembers: ["You", "Rahul", "Priya", "Arun"]
+        tripMembers: ["You", "Rahul", "Priya", "Arun"]
     )
-        
 }

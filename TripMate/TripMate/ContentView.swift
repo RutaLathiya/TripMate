@@ -82,17 +82,13 @@ import CoreData
 //}()
 
 struct ContentView: View {
+    @State private var isLoggedIn = false
     var body: some View {
-        ZStack{
-            Color.BackgroundColor
-                .ignoresSafeArea()
-            VStack{
-                Text("Accent Color")
-                    .foregroundColor(Color.AccentColor)
-                Text("Secondary text color")
-                    .foregroundColor(Color.SecondaryTextColor)
-            }
-        }
+        if isLoggedIn {
+                    HomeView()  // your main app screen
+                } else {
+                    RegistrationView()
+                }
     }
 }
 

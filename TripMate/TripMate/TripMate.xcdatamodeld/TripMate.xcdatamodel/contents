@@ -11,15 +11,26 @@
         <attribute name="startLongitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="tid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="title" optional="YES" attributeType="String"/>
+        <relationship name="members" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="TripMemberEntity" inverseName="trip" inverseEntity="TripMemberEntity"/>
         <relationship name="user" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="UserEntity" inverseName="trips" inverseEntity="UserEntity"/>
     </entity>
+    <entity name="TripMemberEntity" representedClassName="TripMemberEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="memberName" optional="YES" attributeType="String"/>
+        <attribute name="phoneNo" optional="YES" attributeType="String"/>
+        <attribute name="tripMemberId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="trip" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TripEntity" inverseName="members" inverseEntity="TripEntity"/>
+        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="members" inverseEntity="UserEntity"/>
+    </entity>
     <entity name="UserEntity" representedClassName="UserEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="created_at" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="email" optional="YES" attributeType="String"/>
+        <attribute name="firebaseUID" optional="YES" attributeType="String"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="password" optional="YES" attributeType="String"/>
         <attribute name="phoneNo" optional="YES" attributeType="String"/>
         <attribute name="profilePic" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="uid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="members" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TripMemberEntity" inverseName="user" inverseEntity="TripMemberEntity"/>
         <relationship name="trips" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="TripEntity" inverseName="user" inverseEntity="TripEntity"/>
     </entity>
 </model>

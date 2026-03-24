@@ -236,6 +236,6 @@ struct WeatherView: View {
 
 #Preview {
     NavigationStack {
-        WeatherView(cityName: "Surat")
+        WeatherView(cityName: "huizhou")
     }
 }

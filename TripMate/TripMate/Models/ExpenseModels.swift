@@ -122,7 +122,7 @@ class ExpenseStore: ObservableObject {
     // simplified debts — who pays whom
     func settlements() -> [(from: String, to: String, amount: Double)] {
         var result: [(from: String, to: String, amount: Double)] = []
-        var bal = balances(for: Array(Set(expenses.flatMap { $0.members.map { $0.name } })))
+        let bal = balances(for: Array(Set(expenses.flatMap { $0.members.map { $0.name } })))
         
         var debtors  = bal.filter { $0.value < 0 }.sorted { $0.value < $1.value }
         var creditors = bal.filter { $0.value > 0 }.sorted { $0.value > $1.value }

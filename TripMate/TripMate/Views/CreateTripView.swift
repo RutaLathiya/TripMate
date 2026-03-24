@@ -989,7 +989,7 @@ struct CreateTripView: View {
         PackItem(text: "Charger & Power Bank"),
         PackItem(text: "First Aid Kit"),
     ]
-    @State private var friends:       [TripFriend]  = []
+    @State private var friends: [TripFriend]  = []
     @State private var newPackItem    = ""
     @State private var activeSection: TripSection   = .route
     @State private var activeModal:   String?        = nil
@@ -998,7 +998,7 @@ struct CreateTripView: View {
 
     
     @StateObject private var weatherService = WeatherService()
-    
+    @StateObject private var friendsVM = AddFriendsViewModel()
     // MARK: - Computed
 
     private var canStart: Bool {
@@ -1076,7 +1076,7 @@ struct CreateTripView: View {
         case .pack:
             packSection.padding(.horizontal, 20)
         case .friends:
-            AddFriendsView(friends: $friends)
+            AddFriendsView(vm: friendsVM)
                 .padding(.horizontal, 20)
         }
     }
@@ -1617,7 +1617,7 @@ struct CreateTripView: View {
                    // .cornerRadius(18)
                     .overlay(
                         RoundedRectangle(cornerRadius: 18)
-                            .stroke(Color.white.opacity(0.4),lineWidth: 1.5)
+                            .stroke(Color.white.opacity(0.6),lineWidth: 1.5)
                     )
                     .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
                    
