@@ -27,7 +27,7 @@ final class AuthRepository: AuthRepositoryProtocol {
 
     // MARK: - Step 1: Send OTP
     func sendOTP(to phoneNumber: String) async throws -> String {
-        Auth.auth().settings?.isAppVerificationDisabledForTesting = true
+        //Auth.auth().settings?.isAppVerificationDisabledForTesting = true
         
        // do{  // Firebase sends OTP SMS automatically
             let verificationID = try await PhoneAuthProvider.provider()
@@ -48,12 +48,12 @@ final class AuthRepository: AuthRepositoryProtocol {
             .credential(withVerificationID: verificationID, verificationCode: otp)
 
         // Sign in with Firebase
-        let result = try await Auth.auth().signIn(with: credential)
-        let firebaseUser = result.user
+        try await Auth.auth().signIn(with: credential)
+        //let firebaseUser = result.user
 
         // Save or update user in CoreData
-        _ = try saveUserToCorData(firebaseUID: firebaseUser.uid,
-                                     phone: firebaseUser.phoneNumber ?? "")
+    //        _ = try saveUserToCorData(firebaseUID: firebaseUser.uid,
+    //                                     phone: firebaseUser.phoneNumber ?? "")
     }
 
     // MARK: - Save User to CoreData

@@ -994,11 +994,16 @@ struct CreateTripView: View {
     @State private var activeSection: TripSection   = .route
     @State private var activeModal:   String?        = nil
     @State private var tripStarted    = false
+    @State private var startDate: Date = Date()
+    @State private var endDate: Date   = Date().addingTimeInterval(86400)
     @FocusState private var packFieldFocused: Bool
 
     
     @StateObject private var weatherService = WeatherService()
     @StateObject private var friendsVM = AddFriendsViewModel()
+    @StateObject private var tripVM = TripViewModel()
+    
+    @EnvironmentObject var SessionVM: SessionViewModel
     // MARK: - Computed
 
     private var canStart: Bool {
@@ -1028,7 +1033,7 @@ struct CreateTripView: View {
                         .padding(.horizontal, 20)
                         .padding(.bottom, 22)
                     sectionContent
-                    Spacer(minLength: 130)
+                    Spacer(minLength: 200)
                 }
             }
 
@@ -1037,6 +1042,24 @@ struct CreateTripView: View {
         .overlay { modalOverlay }
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: activeModal)
         .animation(.easeInOut(duration: 0.25), value: activeSection)
+        
+        
+        
+        // MARK: - alerts
+        .alert("Trip Saved! 🎉", isPresented: $tripVM.isSaved) {
+            Button("OK", role: .cancel) { tripVM.isSaved = false }
+        } message: { Text("Your trip '\(tripName)' has been created!") }
+
+        .alert("Error", isPresented: Binding(
+            get: { tripVM.errorMessage != nil },
+            set: { if !$0 { DispatchQueue.main.async { tripVM.errorMessage = nil } } }
+        )) {
+            Button("OK", role: .cancel) { tripVM.errorMessage = nil }
+        } message: { Text(tripVM.errorMessage ?? "") }
+        
+        
+        
+        
     }
 
     // MARK: - Modals
@@ -1172,19 +1195,50 @@ struct CreateTripView: View {
 
     private var routeSection: some View {
         VStack(alignment: .leading, spacing: 16) {
+            
             locationCard(label: "FROM", location: startLocation,
                          iconName: "circle.fill", iconColor: Color(red: 0.92, green: 0.75, blue: 0.15),
                          placeholder: "Set Starting Point") { activeModal = "start" }
+            
             routeDivider
+            
             locationCard(label: "TO", location: endLocation,
                          iconName: "circle.fill", iconColor: Color(red: 0.44, green: 0.56, blue: 0.40),
                          placeholder: "Set Destination") { activeModal = "end" }
+            
+//            DatePicker("Start Date",
+//                       selection: $startDate,
+//                       displayedComponents: .date)
+//                .padding()
+//                .background(Color.BackgroundColor.opacity(0.3))
+//                .cornerRadius(14)
+//                .overlay(RoundedRectangle(cornerRadius: 14)
+//                    .stroke(Color.AccentColor.opacity(0.4), lineWidth: 1))
+//                .foregroundColor(Color.AccentColor)
+//
+//           DatePicker("End Date",
+//                       selection: $endDate,
+//                       in: startDate...,
+//                       displayedComponents: .date)
+//                .padding()
+//                .background(Color.BackgroundColor.opacity(0.3))
+//                .cornerRadius(14)
+//                .overlay(RoundedRectangle(cornerRadius: 14)
+//                    .stroke(Color.AccentColor.opacity(0.4), lineWidth: 1))
+//                .foregroundColor(Color.AccentColor)
+           
             if startLocation != nil && endLocation != nil {
                 routePreviewCard
                     .transition(.scale(scale: 0.95).combined(with: .opacity))
                     .padding(.bottom, 100)
             }
         }
+        
+        
+            
+        
+        .padding(.top, 8)
+        
     }
 
     private var routeDivider: some View {
@@ -1585,76 +1639,56 @@ struct CreateTripView: View {
     // MARK: - Start Button
 
     private var startButtonBar: some View {
-//        VStack(spacing: 0) {
-//            LinearGradient(
-//                colors: [Color.BackgroundColor.opacity(0), Color.BackgroundColor],
-//                startPoint: .top, endPoint: .bottom
-//            )
-//            .frame(height: 40)
-//            .allowsHitTesting(false)
-
-            Button {
-                guard canStart else { return }
-                withAnimation { tripStarted = true }
-            } label: {
-                Text(startButtonLabel)
-                    .font(.system(size: 15, weight: .heavy, design: .rounded))
-                    .kerning(2)
-                    .foregroundColor(canStart ? Color.AccentColor : Color.AccentColor.opacity(0.3))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 19)
-                    .background(
-                        ZStack{
-                            Color.white.opacity(0.1)
-                            
-                            Color.BackgroundColor.opacity(0.5)
-                        }
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
-                   //.background(startBtnBG)
-                   // .background(.ultraThinMaterial)
-                    
-                   // .cornerRadius(18)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(Color.white.opacity(0.6),lineWidth: 1.5)
-                    )
-                    .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
-                   
+        Button {
+            guard canStart else { return }
+            guard let objID = SessionVM.currentUserObjectID else {
+                tripVM.errorMessage = "Session expired. Please log in again."
+                return
             }
-//            .glassEffect(.regular.tint(Color.AccentColor.opacity(0.25)))
-//            .glassEffect(
-//                canStart
-//                   ? .regular.tint(Color.AccentColor.opacity(0.25))   // warm brown when ready
-//                   : .regular.tint(Color.AccentColor.opacity(0.08))
-//            )
-//            .shadow(color: canStart ? Color.AccentColor.opacity(0.25) : Color.clear, radius: 6 , y: 4)
-            //.background(.ultraThinMaterial)
-            //.shadow(radius: 6, y: 3)
-            
-        
-            //.glassEffect(.regular.interactive())
-    //.shadow(color: Color.AccentColor.opacity(0.15), radius: 6, y: 4)  // depth below
-            .buttonStyle(ScaleButtonStyle())
-            .disabled(!canStart)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 120)
-       // }
-        //.background(Color.BackgroundColor)
-        
-       
-
-    }
-    
-    
-    
-    struct ScaleButtonStyle: ButtonStyle {
-        func makeBody(configuration: Configuration) -> some View {
-            configuration.label
-                .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-                .animation(.spring(response: 0.2), value: configuration.isPressed)
+            Task {
+                await tripVM.saveTrip(
+                    title:        tripName,
+                    destination:  endLocation?.name ?? "",
+                    startLat:     startLocation?.coordinate.latitude  ?? 0,
+                    startLng:     startLocation?.coordinate.longitude ?? 0,
+                    endLat:       endLocation?.coordinate.latitude    ?? 0,
+                    endLng:       endLocation?.coordinate.longitude   ?? 0,
+                    userObjectID: objID,
+                    friends: friendsVM.friends
+                )
+                if tripVM.isSaved {
+                    withAnimation { tripStarted = true }
+                }
+            }
+        } label: {
+            Text(startButtonLabel)
+                .font(.system(size: 15, weight: .heavy, design: .rounded))
+                .kerning(2)
+                .foregroundColor(canStart ? Color.AccentColor : Color.AccentColor.opacity(0.3))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 19)
+                .background(
+                    ZStack {
+                        Color.white.opacity(0.1)
+                        Color.BackgroundColor.opacity(0.5)
+                    }
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 18))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(Color.white.opacity(0.6), lineWidth: 1.5)
+                )
+                .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
         }
+        .buttonStyle(ScaleButtonStyle())
+        .disabled(!canStart)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 36)
     }
+    
+    
+    
+
 
     @ViewBuilder
     private var startBtnBG: some View {
@@ -1678,6 +1712,13 @@ struct CreateTripView: View {
     }
 }
 
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(.spring(response: 0.2), value: configuration.isPressed)
+    }
+}
 
 #Preview {
     CreateTripView()

@@ -123,7 +123,7 @@ struct LogIn: View {
                     Button(action: {
                        if viewModel.login(context: viewContext){
                            print("✅ calling SessionVM.login() now")
-                           SessionVM.login(userName: viewModel.loggedInName, uid: viewModel.loggedInUID)
+                           SessionVM.login(userName: viewModel.loggedInName, uid: viewModel.loggedInUID, objectID: viewModel.loggedInObjectID)
                         } else {
                             showError = true
                         }

@@ -512,53 +512,79 @@ struct HomeView: View {
 
 // MARK: - Home Page Screen
 struct HomePageView: View {
-    
-    let trips = ["Goa", "Manali", "Kerala", "Dubai", "Paris","spiti"]
+
+    @StateObject private var tripVM = TripViewModel()
+    @EnvironmentObject var SessionVM: SessionViewModel
     @State private var searchText = ""
-    
-    @EnvironmentObject var profileImageManager: ProfileImageManager
-    
-    var filteredTrips: [String] {
-        if searchText.isEmpty {
-            return trips
-        } else {
-            return trips.filter {
-                $0.localizedCaseInsensitiveContains(searchText)
-            }
+
+    var filteredTrips: [TripEntity] {
+        if searchText.isEmpty { return tripVM.trips }
+        return tripVM.trips.filter {
+            ($0.title ?? "").localizedCaseInsensitiveContains(searchText) ||
+            ($0.destination ?? "").localizedCaseInsensitiveContains(searchText)
         }
     }
-    
+
     var body: some View {
-        
-        
         ZStack {
-            Color.BackgroundColor
-                .ignoresSafeArea()
-            
-            List(filteredTrips, id: \.self) { trip in
-                NavigationLink(value: trip) {        // ✅ proper NavigationLink
-                    HStack {
-                        Image(systemName: "airplane")
-                            .foregroundColor(.accentColor)
-                        
-                        VStack(alignment: .leading) {
-                            Text(trip)
-                                .font(.headline)
-                            
-                            Text("Tap to view details")
-                                .font(.caption)
-                                .foregroundColor(.gray)
+            Color.BackgroundColor.ignoresSafeArea()
+
+            if tripVM.trips.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "airplane.circle")
+                        .font(.system(size: 60))
+                        .foregroundColor(Color.AccentColor.opacity(0.4))
+                    Text("No trips yet!")
+                        .font(.title2).fontWeight(.semibold)
+                        .foregroundColor(Color.AccentColor.opacity(0.6))
+                    Text("Tap 'Create Trip' to plan your first adventure")
+                        .font(.subheadline)
+                        .foregroundColor(Color.AccentColor.opacity(0.4))
+                        .multilineTextAlignment(.center)
+                }
+                .padding()
+            } else {
+                ScrollView(showsIndicators: false) {
+                    LazyVStack(spacing: 16) {
+                        ForEach(filteredTrips, id: \.tid) { trip in
+                            NavigationLink(value: trip) {
+                                TripCardView(trip: trip)
+                            }
+                            .buttonStyle(.plain)
+                            // swipe to edit
+                            .swipeActions(edge: .leading, allowsFullSwipe: false){
+                                NavigationLink{
+                                    EditTripView(trip: trip)
+                                        .environmentObject(SessionVM)
+                                } label : {
+                                    Label("Edit" ,systemImage: "pencil")
+                                }
+                                .tint(Color.AccentColor )
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    Task { await tripVM.deleteTrip(trip) }
+                                } label: {
+                                    Label("Detele", systemImage: "trash")
+                                }
+                            }
                         }
                     }
+                    .padding(.top, 10)
+                    .padding(.bottom, 120)
                 }
             }
-            .listStyle(.plain)
         }
-        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search trips")
-//        .navigationTitle("Home")
-//        .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(for: String.self) { trip in
-            TripDetailView(tripName: trip)          // ✅ goes to detail on tap
+        .searchable(text: $searchText,
+                    placement: .navigationBarDrawer(displayMode: .always),
+                    prompt: "Search trips")
+        .navigationDestination(for: TripEntity.self) { trip in
+            TripDetailView(trip: trip)
+        }
+        .onAppear {
+            if let objID = SessionVM.currentUserObjectID {
+                Task { await tripVM.fetchTrips(userObjectID: objID) }
+            }
         }
     }
 }

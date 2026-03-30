@@ -71,14 +71,76 @@ class WeatherService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage = ""
     
-    // Fetch current weather by city name
+    
+    
+    // MARK: - Fetch current weather by Coordinates name
+    
+    func fetchForecastByCoord(lat: Double, lon: Double) {
+        let urlString = "\(baseURL)/forecast?lat=\(lat)&lon=\(lon)&appid=\(apiKey)&units=metric"
+        print("🌤️ Forecast URL: \(urlString)")
+        guard let url = URL(string: urlString) else { return }
+        
+        // ✅ Use async/await instead of dataTask
+        Task {
+            do {
+                let (data, response) = try await URLSession.shared.data(from: url)
+                print("📡 HTTP status: \((response as? HTTPURLResponse)?.statusCode ?? 0)")
+                print("📦 Data size: \(data.count) bytes")
+                
+                if let decoded = try? JSONDecoder().decode(ForecastResponse.self, from: data) {
+                    await MainActor.run {
+                        self.forecast = decoded.list.enumerated()
+                            .filter { $0.offset % 8 == 0 }
+                            .map { $0.element }
+                        print("✅ Forecast count: \(self.forecast.count)")
+                    }
+                } else {
+                    print("❌ Decode failed")
+                    print("📦 Raw: \(String(data: data, encoding: .utf8) ?? "nil")")
+                }
+            } catch {
+                print("❌ Network error: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    
+    
+    func fetchWeatherByCoord(lat: Double, lon: Double) {
+        isLoading = true
+        errorMessage = ""
+        
+        let urlString = "\(baseURL)/weather?lat=\(lat)&lon=\(lon)&appid=\(apiKey)&units=metric"
+        guard let url = URL(string: urlString) else { return }
+        
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                await MainActor.run {
+                    self.isLoading = false
+                    if let decoded = try? JSONDecoder().decode(WeatherResponse.self, from: data) {
+                        self.currentWeather = decoded
+                    } else {
+                        self.errorMessage = "Could not fetch weather"
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.isLoading = false
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+    
+    //MARK: - Fetch current weather by city name
     func fetchWeather(for city: String) {
         isLoading = true
         errorMessage = ""
         
         let urlString = "\(baseURL)/weather?q=\(city.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? city)&appid=\(apiKey)&units=metric"
         
-        //print("🌤️ Fetching: \(urlString)")
+        print("🌤️ Fetching: \(urlString)")
         
         guard let url = URL(string: urlString) else { return }
         

@@ -12,6 +12,7 @@ import Combine
 import FirebaseCore
 import FirebaseAuth
 
+
 final class GoogleSignInViewModel: ObservableObject {
 
     // MARK: - State
@@ -21,6 +22,8 @@ final class GoogleSignInViewModel: ObservableObject {
 
     private let repository = GoogleSignInRepository()
 
+    
+    nonisolated init() { }
     // MARK: - Sign In
     @MainActor
 //    func signIn(viewModel: RegistrationViewModel) async {

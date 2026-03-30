@@ -11,6 +11,9 @@ import Combine
 struct WeatherView: View {
     
     let cityName: String
+    let latitude: Double
+    let longitude: Double
+    
     @StateObject private var weatherService = WeatherService()
     
     var body: some View {
@@ -53,8 +56,17 @@ struct WeatherView: View {
         .navigationTitle("Weather")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            weatherService.fetchWeather(for: cityName)
-            weatherService.fetchForecast(for: cityName)
+            print("🗺️ Weather coords: lat=\(latitude), lon=\(longitude)")
+            print("🔄 Calling forecast...") // ✅ Add this
+            if latitude != 0 && longitude != 0{
+                weatherService.fetchWeatherByCoord(lat: latitude, lon: longitude)
+                weatherService.fetchForecastByCoord(lat: latitude, lon: longitude)
+                print("🌤️ Functions called on: \(ObjectIdentifier(weatherService))")
+            } else {
+                // fallback to city name
+                weatherService.fetchWeather(for: cityName)
+                weatherService.fetchForecast(for: cityName)
+            }
         }
     }
     
@@ -206,8 +218,13 @@ struct WeatherView: View {
                 .font(.system(size: 13, design: .monospaced))
                 .foregroundColor(Color.AccentColor.opacity(0.6))
             Button {
-                weatherService.fetchWeather(for: cityName)
-                weatherService.fetchForecast(for: cityName)
+                if latitude != 0 && longitude != 0 {
+                    weatherService.fetchWeatherByCoord(lat: latitude, lon: longitude)
+                    weatherService.fetchForecastByCoord(lat: latitude, lon: longitude)
+                } else {
+                    weatherService.fetchWeather(for: cityName)
+                    weatherService.fetchForecast(for: cityName)
+                }
             } label: {
                 Text("RETRY")
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
@@ -236,6 +253,6 @@ struct WeatherView: View {
 
 #Preview {
     NavigationStack {
-        WeatherView(cityName: "huizhou")
+        WeatherView(cityName: "delhi", latitude: 28.613, longitude: 77.209)
     }
 }

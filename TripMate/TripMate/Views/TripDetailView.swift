@@ -1,9 +1,9 @@
-////
-////  TripDetailView.swift
-////  TripMate
-////
-////  Created by iMac on 13/03/26.
-////
+//
+//  TripDetailView.swift
+//  TripMate
+//
+//  Created by iMac on 13/03/26.
+//
 //
 //import SwiftUI
 //
@@ -92,17 +92,35 @@
 
 
 import SwiftUI
+import CoreData
 
 struct TripDetailView: View {
-    let tripName: String
+    @ObservedObject var trip: TripEntity
+    
+    @State private var showEditView = false
     
     @StateObject private var expenseStore = ExpenseStore()
+    @StateObject private var tripVM = TripViewModel()
+    
+    @EnvironmentObject var SessionVM: SessionViewModel
+    
     private let members = ["You", "Rahul", "Priya", "Arun", "mahek", "krishna"]
     
     // sample trip data — replace with CoreData later
-    private let startDate = "Mar 15, 2026"
-    private let endDate   = "Mar 20, 2026"
-    private let startLocation = "Surat, Gujarat"
+    private var tripName: String { trip.title ?? "Trip" }
+    private var startLocation: String { trip.destination ?? "" }
+
+    private var dateRange: String {
+           let fmt = DateFormatter()
+           fmt.dateFormat = "MMM dd, yyyy"
+           let s = trip.startDate.map { fmt.string(from: $0) } ?? "Not started"
+           let e = trip.endDate.map   { fmt.string(from: $0) } ?? "Not ended"
+           return "\(s) → \(e)"
+       }
+    
+    // ✅ Trip status
+       private var isStarted: Bool { trip.startDate != nil }
+       private var isEnded: Bool   { trip.endDate != nil }
     
     var body: some View {
         ZStack {
@@ -111,15 +129,115 @@ struct TripDetailView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
                     heroSection
+                    
+                    tripActionButtons
+                                           .padding(.horizontal, 20)
+                                           .padding(.top, 16)
                     cardsGrid
                         .padding(.horizontal, 20)
                         .padding(.top, 24)
                         .padding(.bottom, 120)
                 }
             }
+            
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showEditView = true
+                    } label: {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(Color.AccentColor)
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $showEditView) {
+                EditTripView(trip: trip)
+                    .environmentObject(SessionVM)
+            }
+            
         }
 //        .navigationTitle(tripName)
 //        .navigationBarTitleDisplayMode(.large)
+    }
+    
+    private var tripActionButtons: some View {
+        HStack(spacing: 12) {
+
+            // Start Trip Button
+            Button {
+                tripVM.startTrip(trip)
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: isStarted ? "checkmark.circle.fill" : "play.circle.fill")
+                        .font(.system(size: 16))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(isStarted ? "STARTED" : "START TRIP")
+                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .kerning(1)
+                        if isStarted, let date = trip.startDate {
+                            Text(DateFormatter.shortDate.string(from: date))
+                                .font(.system(size: 9, design: .monospaced))
+                                .opacity(0.7)
+                        }
+                    }
+                }
+                .foregroundColor(isStarted ? .white : Color.AccentColor)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    isStarted
+                        ? Color.green.opacity(0.8)
+                        : Color.AccentColor.opacity(0.1)
+                )
+                .cornerRadius(14)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(
+                            isStarted ? Color.green : Color.AccentColor.opacity(0.3),
+                            lineWidth: 1.5
+                        )
+                )
+            }
+            .disabled(isStarted) // ✅ can't start twice
+
+            // End Trip Button
+            Button {
+                tripVM.endTrip(trip)
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: isEnded ? "checkmark.circle.fill" : "stop.circle.fill")
+                        .font(.system(size: 16))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(isEnded ? "ENDED" : "END TRIP")
+                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .kerning(1)
+                        if isEnded, let date = trip.endDate {
+                            Text(DateFormatter.shortDate.string(from: date))
+                                .font(.system(size: 9, design: .monospaced))
+                                .opacity(0.7)
+                        }
+                    }
+                }
+                .foregroundColor(isEnded ? .white : Color.AccentColor)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    isEnded
+                        ? Color.red.opacity(0.7)
+                        : Color.AccentColor.opacity(0.1)
+                )
+                .cornerRadius(14)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(
+                            isEnded ? Color.red : Color.AccentColor.opacity(0.3),
+                            lineWidth: 1.5
+                        )
+                )
+            }
+            .disabled(!isStarted || isEnded) // ✅ can only end after starting
+        }
     }
     
     // MARK: - Hero Section
@@ -146,9 +264,9 @@ struct TripDetailView: View {
                 
                 // Date + location row
                 HStack(spacing: 16) {
-                    Label("\(startDate) → \(endDate)", systemImage: "calendar")
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundColor(Color.AccentColor.opacity(0.7))
+//                    Label("\(startDate) → \(endDate)", systemImage: "calendar")
+//                        .font(.system(size: 11, design: .monospaced))
+//                        .foregroundColor(Color.AccentColor.opacity(0.7))
                     
                     Label(startLocation, systemImage: "mappin.circle.fill")
                         .font(.system(size: 11, design: .monospaced))
@@ -183,7 +301,11 @@ struct TripDetailView: View {
     private var cardsGrid: some View {
         VStack(spacing: 14) {
             // Weather — full width
-            NavigationLink(destination: WeatherView(cityName: tripName)) {
+            NavigationLink(destination: WeatherView(
+                cityName: trip.destination ?? "",
+                latitude: trip.endLatitude,
+                longitude: trip.endLongitude
+            )) {
                 featureCard(
                     icon: "cloud.sun.fill",
                     title: "Weather",
@@ -301,9 +423,28 @@ struct TripDetailView: View {
     }
 }
 
+// MARK: - DateFormatter Helper
+extension DateFormatter {
+    static let shortDate: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "dd MMM, HH:mm"
+        return f
+    }()
+}
+
+//#Preview {
+//    NavigationStack {
+//        TripDetailView(trip: TripEntity())
+//    }
+//}
+
 #Preview {
-    NavigationStack {
-        TripDetailView(tripName: "Goa")
+    let context = PersistenceController.shared.context
+    let trip = TripEntity(context: context)
+    trip.title = "Goa Trip"
+    trip.destination = "Goa, India"
+    return NavigationStack {
+        TripDetailView(trip: trip)
     }
 }
 
@@ -340,3 +481,6 @@ struct SOSView: View {
         .navigationTitle("SOS")
     }
 }
+
+
+

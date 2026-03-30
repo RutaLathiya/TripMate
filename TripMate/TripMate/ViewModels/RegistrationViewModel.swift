@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 import CoreData
+import FirebaseAuth
 
 class RegistrationViewModel: ObservableObject {
     
@@ -64,7 +65,16 @@ class RegistrationViewModel: ObservableObject {
         user.setValue(email, forKey: "email")
         user.setValue(password, forKey: "password")
         user.setValue(phoneNo, forKey: "phoneNo")
+        user.setValue(Date(), forKey: "created_at")
         
+        // ✅ Add this — grab current Firebase user and save UID
+        if let firebaseUser = Auth.auth().currentUser {
+                user.setValue(firebaseUser.uid, forKey: "firebaseUID")  // ✅ firebaseUID
+                print("✅ Firebase UID saved: \(firebaseUser.uid)")
+            } else {
+                print("⚠️ No Firebase user logged in yet")
+            }
+       
         do {
             try context.save()
             print("✅ User saved successfully")

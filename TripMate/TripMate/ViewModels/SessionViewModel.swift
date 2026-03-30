@@ -34,13 +34,14 @@ class SessionViewModel: ObservableObject{
     @Published var currentUserUID: UUID? = nil
     // Add this in SessionViewModel
     
+    @Published var currentUserObjectID: NSManagedObjectID? = nil
     
-    
-    func login(userName: String = "", uid: UUID? = nil) {
+    func login(userName: String = "", uid: UUID? = nil, objectID: NSManagedObjectID? = nil) {
                 //DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     self.isLoggedIn = true
                     currentUser = userName
                     self.currentUserUID = uid  // 👈 store the uid
+                    self.currentUserObjectID = objectID
                     print("✅ Logged in as: \(userName), uid: \(String(describing: uid))")
                 //}
             }
@@ -51,6 +52,7 @@ class SessionViewModel: ObservableObject{
             showLogIn = true
             currentUser = ""
             currentUserUID = nil
+            currentUserObjectID = nil
         }
 }
 

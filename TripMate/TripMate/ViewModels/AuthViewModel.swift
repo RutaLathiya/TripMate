@@ -26,14 +26,14 @@ final class AuthViewModel: ObservableObject {
 
     // MARK: - Navigation (used by standalone PhoneLoginView if needed)
     @Published var showOTPScreen: Bool   = false
-    @Published var isLoggedIn: Bool          = false
+    @Published var isLoggedIn: Bool      = false
 
     // MARK: - Internal
     private var verificationID: String?  = nil
     private let repository: AuthRepositoryProtocol
 
     // MARK: - Init
-    init(repository: AuthRepositoryProtocol = AuthRepository()) {
+   init(repository: AuthRepositoryProtocol = AuthRepository()) {
         self.repository = repository
     }
 

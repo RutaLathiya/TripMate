@@ -37,7 +37,7 @@ final class TripMemberRepository: TripMemberRepositoryProtocol {
         
         if friend.isLinked {
             let request = UserEntity.fetchRequest()
-            request.predicate = NSPredicate(format: "phone_no == %@", friend.phone)
+            request.predicate = NSPredicate(format: "phoneNo == %@", friend.phone)
             request.fetchLimit = 1
             entity.user = try? context.fetch(request).first
         }
@@ -53,7 +53,7 @@ final class TripMemberRepository: TripMemberRepositoryProtocol {
  
         let request = TripMemberEntity.fetchRequest()
         request.predicate = NSPredicate(format: "trip == %@", trip)
-        request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
+        request.sortDescriptors = [NSSortDescriptor(key: "memberName", ascending: true)]
         return try context.fetch(request)
     }
  

@@ -784,7 +784,6 @@ struct RegistrationView: View {
     var body: some View {
         ZStack {
             Color.BackgroundColor.ignoresSafeArea()
-            ScrollView(showsIndicators: false) {
                 VStack(spacing: 5) {
                     headerSection
                     nameFields
@@ -795,9 +794,8 @@ struct RegistrationView: View {
                     otherOptionsSection
                     alreadyHaveAccount
                 }
-                .padding(.top, 20)
+                .padding(.top, 30)
                 .padding(.bottom, 30)
-            }
         }
         .sheet(isPresented: $showPhoneOTPSheet) {
             OTPSheetView(authVM: authVM, onVerified: { showPhoneOTPSheet = false })
@@ -811,21 +809,33 @@ struct RegistrationView: View {
         
         .alert("Phone Error", isPresented: Binding(
             get: { authVM.errorMessage != nil },
-            set: { if !$0 { authVM.errorMessage = nil } }
+            set: { if !$0 {
+                DispatchQueue.main.async{
+                    authVM.errorMessage = nil
+                    }
+                } }
         )) {
             Button("OK", role: .cancel) { authVM.errorMessage = nil }
         } message: { Text(authVM.errorMessage ?? "") }
         
         .alert("Email Error", isPresented: Binding(
             get: { emailOTPVM.errorMessage != nil },
-            set: { if !$0 { emailOTPVM.errorMessage = nil } }
+            set: { if !$0 {
+                DispatchQueue.main.async{
+                    emailOTPVM.errorMessage = nil
+                }
+                } }
         )) {
             Button("OK", role: .cancel) { emailOTPVM.errorMessage = nil }
         } message: { Text(emailOTPVM.errorMessage ?? "") }
         
         .alert("Google Error", isPresented: Binding(
             get: { googleVM.errorMessage != nil },
-            set: { if !$0 { googleVM.errorMessage = nil } }
+            set: { if !$0 {
+                DispatchQueue.main.async{
+                    googleVM.errorMessage = nil
+                }
+                } }
         )) {
             Button("OK", role: .cancel) { googleVM.errorMessage = nil }
         } message: { Text(googleVM.errorMessage ?? "") }

@@ -49,6 +49,7 @@ class LogInViewModel: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var loggedInName: String = ""
     @Published var loggedInUID: UUID? = nil
+    @Published var loggedInObjectID: NSManagedObjectID? = nil
     
     var isValid: Bool {
         email.contains("@") && !password.isEmpty
@@ -73,6 +74,7 @@ class LogInViewModel: ObservableObject {
                 if storedPassword == password {
                     loggedInName = user.name ?? email
                     loggedInUID = user.uid                   // 👈 direct property access, no casting
+                    loggedInObjectID = user.objectID  // ✅ Add this
                     print("✅ Login successful! uid: \(String(describing: user.uid))")
                     isAuthenticated = true
                     return true
