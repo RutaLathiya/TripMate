@@ -84,7 +84,6 @@ enum AddFriendsMode {
     case edit(tripObjectID: NSManagedObjectID) // save to CoreData immediately
 }
  
-// MARK: - AddFriends ViewModel
 final class AddFriendsViewModel: ObservableObject {
  
     // MARK: - Published State
@@ -99,7 +98,7 @@ final class AddFriendsViewModel: ObservableObject {
  
     // MARK: - Init
  
-    /// Create Trip flow — no CoreData saving yet, just local array
+    // Create Trip flow — no CoreData saving yet, just local array
     init() {
         self.mode       = .create
         self.repository = nil
@@ -117,13 +116,37 @@ final class AddFriendsViewModel: ObservableObject {
     // MARK: - Intents
  
     func addFriend(_ friend: TripFriend) {
+        // ✅ If isLinked, verify user exists before adding
+        if friend.isLinked {
+           // let repo = TripMemberRepository()
+            let context = PersistenceController.shared.context
+            let request = UserEntity.fetchRequest()
+            let normalizedPhone = friend.phone
+                .replacingOccurrences(of: "+91", with: "")
+                .replacingOccurrences(of: " ", with: "")
+                .replacingOccurrences(of: "-", with: "")
+                .trimmingCharacters(in: .whitespaces)
+            
+            request.predicate = NSPredicate(format: "phoneNo == %@", normalizedPhone)
+            request.fetchLimit = 1
+            
+            if let count = try? context.count(for: request), count == 0 {
+                // ✅ No matching user — add as unlinked
+                let unlinkedFriend = TripFriend(
+                    name: friend.name,
+                    phone: friend.phone,
+                    isLinked: false  // ← force unlinked
+                )
+                friends.append(unlinkedFriend)
+                saveError = "No TripMate account found for \(friend.phone). Added as unlinked."
+                return
+            }
+        }
+        
         friends.append(friend)
- 
-        // Only persist immediately in edit mode
         if case .edit(let tripObjectID) = mode {
             persist(friend, tripID: tripObjectID)
         }
-        // In create mode, friends stay local until trip is saved
     }
  
     func removeFriend(_ friend: TripFriend) {

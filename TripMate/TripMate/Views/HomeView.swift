@@ -516,6 +516,7 @@ struct HomePageView: View {
     @StateObject private var tripVM = TripViewModel()
     @EnvironmentObject var SessionVM: SessionViewModel
     @State private var searchText = ""
+    @State private var selectedTripForEdit: TripEntity? = nil
 
     var filteredTrips: [TripEntity] {
         if searchText.isEmpty { return tripVM.trips }
@@ -544,13 +545,16 @@ struct HomePageView: View {
                 }
                 .padding()
             } else {
-                ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: 16) {
+                List {
                         ForEach(filteredTrips, id: \.tid) { trip in
                             NavigationLink(value: trip) {
                                 TripCardView(trip: trip)
                             }
-                            .buttonStyle(.plain)
+                            //.buttonStyle(.plain)
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.BackgroundColor)
+                            .listRowSeparator(.hidden)
+                            .padding(.vertical, 8)
                             // swipe to edit
                             .swipeActions(edge: .leading, allowsFullSwipe: false){
                                 NavigationLink{
@@ -563,16 +567,20 @@ struct HomePageView: View {
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
-                                    Task { await tripVM.deleteTrip(trip) }
+                                    if let objID = SessionVM.currentUserObjectID {
+                                        Task { await tripVM.deleteTrip(trip) }
+                                    }
                                 } label: {
                                     Label("Detele", systemImage: "trash")
                                 }
                             }
                         }
-                    }
-                    .padding(.top, 10)
+                    //.padding(.top, 10)
                     .padding(.bottom, 120)
                 }
+                          .listStyle(.plain)
+                          .background(Color.BackgroundColor)
+                          .scrollContentBackground(.hidden)
             }
         }
         .searchable(text: $searchText,
@@ -580,6 +588,16 @@ struct HomePageView: View {
                     prompt: "Search trips")
         .navigationDestination(for: TripEntity.self) { trip in
             TripDetailView(trip: trip)
+                .environmentObject(SessionVM)
+        }
+        .navigationDestination(isPresented: Binding(
+            get: {selectedTripForEdit != nil },
+            set: {if !$0 {selectedTripForEdit = nil } }
+        )) {
+            if let trip = selectedTripForEdit {
+                EditTripView(trip: trip)
+                    .environmentObject(SessionVM)
+            }
         }
         .onAppear {
             if let objID = SessionVM.currentUserObjectID {

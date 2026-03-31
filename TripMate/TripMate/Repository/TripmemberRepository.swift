@@ -39,7 +39,13 @@ final class TripMemberRepository: TripMemberRepositoryProtocol {
             let request = UserEntity.fetchRequest()
             request.predicate = NSPredicate(format: "phoneNo == %@", friend.phone)
             request.fetchLimit = 1
-            entity.user = try? context.fetch(request).first
+            if let matchedUser = try? context.fetch(request).first {
+                entity.user = matchedUser
+                print("Member Linked to User : \(matchedUser.name ?? "")")
+            } else {
+                entity.user = nil
+                print("No user found with phone \(friend.phone) — saved as unlinked")
+            }
         }
  
         try context.save()

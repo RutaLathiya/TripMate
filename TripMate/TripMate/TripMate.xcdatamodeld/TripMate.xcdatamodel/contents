@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="24G90" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="ExpenseEntity" representedClassName="ExpenseEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="amount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="category" optional="YES" attributeType="String"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="expenseId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="payerName" optional="YES" attributeType="String"/>
+        <attribute name="splitType" optional="YES" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <relationship name="shares" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ExpenseShareEntity"/>
+        <relationship name="trip" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TripEntity"/>
+    </entity>
+    <entity name="ExpenseShareEntity" representedClassName="ExpenseShareEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="isPaid" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="memberName" optional="YES" attributeType="String"/>
+        <attribute name="shareAmount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="shareId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="expense" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ExpenseEntity"/>
+    </entity>
     <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
@@ -14,8 +34,8 @@
         <attribute name="startLongitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="tid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="title" optional="YES" attributeType="String"/>
-        <relationship name="members" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="TripMemberEntity" inverseName="trip" inverseEntity="TripMemberEntity"/>
-        <relationship name="user" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="UserEntity" inverseName="trips" inverseEntity="UserEntity"/>
+        <relationship name="members" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="TripMemberEntity" inverseName="trip" inverseEntity="TripMemberEntity"/>
+        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="trips" inverseEntity="UserEntity"/>
     </entity>
     <entity name="TripMemberEntity" representedClassName="TripMemberEntity" syncable="YES" codeGenerationType="class">
         <attribute name="memberName" optional="YES" attributeType="String"/>
@@ -34,6 +54,6 @@
         <attribute name="profilePic" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="uid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="members" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TripMemberEntity" inverseName="user" inverseEntity="TripMemberEntity"/>
-        <relationship name="trips" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="TripEntity" inverseName="user" inverseEntity="TripEntity"/>
+        <relationship name="trips" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="TripEntity" inverseName="user" inverseEntity="TripEntity"/>
     </entity>
 </model>

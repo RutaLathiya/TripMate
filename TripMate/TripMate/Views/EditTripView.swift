@@ -85,8 +85,8 @@ struct EditTripView: View {
         .overlay { modalOverlay }
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: activeModal)
         .animation(.easeInOut(duration: 0.25), value: activeSection)
-        .navigationTitle("Edit Trip")
-        .navigationBarTitleDisplayMode(.inline)
+        //.navigationTitle("Edit Trip")
+        //.navigationBarTitleDisplayMode(.inline)
         .onAppear { loadExistingMembers() }
 
         .alert("Trip Updated! ✅", isPresented: $tripVM.isSaved) {

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import CoreData
 
 // MARK: - Expense Category
 enum ExpenseCategory: String, CaseIterable, Codable {
@@ -90,25 +91,73 @@ struct Expense: Identifiable, Codable {
 
 // MARK: - Expense Store (holds all expenses for a trip)
 class ExpenseStore: ObservableObject {
+
     @Published var expenses: [Expense] = []
-    
-    // total spent
+
+    // ✅ Add CoreData support
+    private let repository: ExpenseRepositoryProtocol
+    private var tripObjectID: NSManagedObjectID?
+
+    // ✅ Init with tripObjectID for CoreData
+    init(tripObjectID: NSManagedObjectID? = nil,
+         repository: ExpenseRepositoryProtocol = ExpenseRepository()) {
+        self.tripObjectID = tripObjectID
+        self.repository   = repository
+        if let id = tripObjectID {
+            loadExpenses(for: id)
+        }
+    }
+
+    // ✅ Load from CoreData
+    func loadExpenses(for tripID: NSManagedObjectID) {
+        self.tripObjectID = tripID
+        do {
+            expenses = try repository.fetchExpenses(for: tripID)
+            print("✅ Loaded \(expenses.count) expenses")
+        } catch {
+            print("❌ Failed to load expenses: \(error)")
+        }
+    }
+
+    // ✅ Total
     var totalAmount: Double {
         expenses.reduce(0) { $0 + $1.amount }
     }
-    
-    // what each person owes across all expenses
+
+    // ✅ Add — saves to CoreData
+    func addExpense(_ expense: Expense) {
+        expenses.append(expense)
+        if let tripID = tripObjectID {
+            try? repository.saveExpense(expense, tripID: tripID)
+        }
+    }
+
+    // ✅ Delete — removes from CoreData
+    func deleteExpense(id: UUID) {
+        expenses.removeAll { $0.id == id }
+        if let tripID = tripObjectID {
+            try? repository.deleteExpense(id: id, tripID: tripID)
+        }
+    }
+
+    // ✅ Mark settled — saves to CoreData
+    func markSettled(expenseId: UUID, memberName: String) {
+        if let eIdx = expenses.firstIndex(where: { $0.id == expenseId }),
+           let mIdx = expenses[eIdx].members.firstIndex(where: { $0.name == memberName }) {
+            expenses[eIdx].members[mIdx].isPaid = true
+        }
+        try? repository.markSettled(expenseId: expenseId, memberName: memberName)
+    }
+
+    // balances and settlements stay exactly the same
     func balances(for members: [String]) -> [String: Double] {
         var balances: [String: Double] = [:]
-        for member in members {
-            balances[member] = 0
-        }
+        for member in members { balances[member] = 0 }
         for expense in expenses {
             for member in expense.members {
                 let share = expense.splitType == .equal
                     ? expense.equalShare
                     : member.shareAmount
-                // if member is payer, they are owed
                 if member.name == expense.payerName {
                     balances[member.name, default: 0] += (expense.amount - share)
                 } else {
@@ -118,50 +167,25 @@ class ExpenseStore: ObservableObject {
         }
         return balances
     }
-    
-    // simplified debts — who pays whom
+
     func settlements() -> [(from: String, to: String, amount: Double)] {
         var result: [(from: String, to: String, amount: Double)] = []
         let bal = balances(for: Array(Set(expenses.flatMap { $0.members.map { $0.name } })))
-        
-        var debtors  = bal.filter { $0.value < 0 }.sorted { $0.value < $1.value }
+        var debtors   = bal.filter { $0.value < 0 }.sorted { $0.value < $1.value }
         var creditors = bal.filter { $0.value > 0 }.sorted { $0.value > $1.value }
-        
         var i = 0, j = 0
         while i < debtors.count && j < creditors.count {
             let debt   = abs(debtors[i].value)
             let credit = creditors[j].value
             let amount = min(debt, credit)
-            
             if amount > 0.01 {
-                result.append((
-                    from: debtors[i].key,
-                    to: creditors[j].key,
-                    amount: amount
-                ))
+                result.append((from: debtors[i].key, to: creditors[j].key, amount: amount))
             }
-            
             debtors[i]   = (key: debtors[i].key,   value: debtors[i].value   + amount)
             creditors[j] = (key: creditors[j].key, value: creditors[j].value - amount)
-            
             if abs(debtors[i].value)   < 0.01 { i += 1 }
             if abs(creditors[j].value) < 0.01 { j += 1 }
         }
         return result
-    }
-    
-    func addExpense(_ expense: Expense) {
-        expenses.append(expense)
-    }
-    
-    func deleteExpense(id: UUID) {
-        expenses.removeAll { $0.id == id }
-    }
-    
-    func markSettled(expenseId: UUID, memberName: String) {
-        if let eIdx = expenses.firstIndex(where: { $0.id == expenseId }),
-           let mIdx = expenses[eIdx].members.firstIndex(where: { $0.name == memberName }) {
-            expenses[eIdx].members[mIdx].isPaid = true
-        }
     }
 }

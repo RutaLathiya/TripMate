@@ -996,6 +996,7 @@ struct CreateTripView: View {
     @State private var tripStarted    = false
     @State private var startDate: Date = Date()
     @State private var endDate: Date   = Date().addingTimeInterval(86400)
+    @State private var hasSaved = false
     @FocusState private var packFieldFocused: Bool
 
     
@@ -1010,12 +1011,13 @@ struct CreateTripView: View {
         !tripName.trimmingCharacters(in: .whitespaces).isEmpty
             && startLocation != nil
             && endLocation != nil
+            && !hasSaved
     }
 
     private var startButtonLabel: String {
-        if tripStarted                                            { return "🚗  TRIP IN PROGRESS"           }
-        if canStart                                               { return "🚀  START TRIP"                 }
-        if tripName.trimmingCharacters(in: .whitespaces).isEmpty { return "ENTER TRIP NAME TO BEGIN"       }
+        if tripStarted                                            { return "🚗  TRIP SAVED" }
+        if canStart                                               { return "🚀  SAVE TRIP" }
+        if tripName.trimmingCharacters(in: .whitespaces).isEmpty  { return "ENTER TRIP NAME TO BEGIN"   }
         if startLocation == nil                                   { return "SET START LOCATION TO CONTINUE" }
         return "SET DESTINATION TO CONTINUE"
     }
@@ -1037,11 +1039,17 @@ struct CreateTripView: View {
                 }
             }
 
-            startButtonBar
+            //startButtonBar
         }
         .overlay { modalOverlay }
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: activeModal)
         .animation(.easeInOut(duration: 0.25), value: activeSection)
+        .safeAreaInset(edge: .bottom) {
+            if activeModal == nil {
+                startButtonBar
+                    .padding(.bottom, 70)
+            }
+        }
         
         
         
@@ -1056,10 +1064,6 @@ struct CreateTripView: View {
         )) {
             Button("OK", role: .cancel) { tripVM.errorMessage = nil }
         } message: { Text(tripVM.errorMessage ?? "") }
-        
-        
-        
-        
     }
 
     // MARK: - Modals
@@ -1658,6 +1662,7 @@ struct CreateTripView: View {
                 )
                 if tripVM.isSaved {
                     withAnimation { tripStarted = true }
+                    hasSaved = true
                 }
             }
         } label: {

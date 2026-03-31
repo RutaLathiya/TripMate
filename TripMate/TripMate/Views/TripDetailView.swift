@@ -98,8 +98,10 @@ struct TripDetailView: View {
     @ObservedObject var trip: TripEntity
     
     @State private var showEditView = false
+    @State private var showRouteView = false
+    @State private var tripStops: [TripStop] = []
     
-    @StateObject private var expenseStore = ExpenseStore()
+    @StateObject private var expenseStore: ExpenseStore
     @StateObject private var tripVM = TripViewModel()
     
     @EnvironmentObject var SessionVM: SessionViewModel
@@ -121,6 +123,23 @@ struct TripDetailView: View {
     // ✅ Trip status
        private var isStarted: Bool { trip.startDate != nil }
        private var isEnded: Bool   { trip.endDate != nil }
+       
+    private var tripMemberNames: [String] {
+        let memberRepo = TripMemberRepository()
+        let members = (try? memberRepo.fetchMembers(for: trip.objectID)) ?? []
+        var names = members.compactMap { $0.memberName }
+        // Add current user
+        let userName = SessionVM.currentUser
+        if !userName.isEmpty && !names.contains(userName) {
+            names.insert(userName, at: 0)
+        }
+        return names.isEmpty ? ["You"] : names
+    }
+    
+    init(trip: TripEntity) {
+        self.trip = trip
+        _expenseStore = StateObject(wrappedValue: ExpenseStore(tripObjectID: trip.objectID))
+    }
     
     var body: some View {
         ZStack {
@@ -159,6 +178,11 @@ struct TripDetailView: View {
         }
 //        .navigationTitle(tripName)
 //        .navigationBarTitleDisplayMode(.large)
+        .onAppear {
+            // Load stops if you have StopEntity
+            // For now pass empty stops
+            tripStops = []
+        }
     }
     
     private var tripActionButtons: some View {
@@ -167,6 +191,7 @@ struct TripDetailView: View {
             // Start Trip Button
             Button {
                 tripVM.startTrip(trip)
+                showRouteView = true
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: isStarted ? "checkmark.circle.fill" : "play.circle.fill")
@@ -200,7 +225,9 @@ struct TripDetailView: View {
                 )
             }
             .disabled(isStarted) // ✅ can't start twice
-
+            .navigationDestination(isPresented: $showRouteView) {
+                TripRouteView(trip: trip, stops: tripStops)
+            }
             // End Trip Button
             Button {
                 tripVM.endTrip(trip)
@@ -319,7 +346,7 @@ struct TripDetailView: View {
             NavigationLink(destination: ExpenseView(
                 store: expenseStore,
                 tripName: tripName,
-                tripMembers: members
+                tripMembers: tripMemberNames
             )) {
                 featureCard(
                     icon: "indianrupeesign.circle.fill",
@@ -374,6 +401,18 @@ struct TripDetailView: View {
                         fullWidth: false
                     )
                 }
+            }
+            // Add to cardsGrid in TripDetailView
+            Button {
+                showRouteView = true
+            } label: {
+                featureCard(
+                    icon: "map.fill",
+                    title: "Route",
+                    subtitle: "View trip route",
+                    accent: Color(red: 0.2, green: 0.5, blue: 0.9),
+                    fullWidth: true
+                )
             }
         }
     }
