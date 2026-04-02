@@ -159,7 +159,7 @@ struct TripRouteView: View {
         .navigationTitle(trip.title ?? "Route")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { fetchRoutes() }
-        .onChange(of: selectedTransport) { _ in fetchRoutes() }
+        .onChange(of: selectedTransport) { fetchRoutes() }
     }
 
     // MARK: - Transport Picker

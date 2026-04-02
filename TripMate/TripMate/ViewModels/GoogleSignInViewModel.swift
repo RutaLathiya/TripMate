@@ -58,7 +58,7 @@ final class GoogleSignInViewModel: ObservableObject {
     func signIn(viewModel: RegistrationViewModel) async {
         guard let clientID = FirebaseApp.app()?.options.clientID else { return }
 
-        let config = GIDConfiguration(clientID: clientID)
+      //  let config = GIDConfiguration(clientID: clientID)
 
         guard let windowScene =  UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController =  windowScene.windows.first?.rootViewController else {

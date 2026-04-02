@@ -10,15 +10,15 @@
         <attribute name="payerName" optional="YES" attributeType="String"/>
         <attribute name="splitType" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
-        <relationship name="shares" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ExpenseShareEntity"/>
-        <relationship name="trip" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TripEntity"/>
+        <relationship name="shares" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ExpenseShareEntity" inverseName="expense" inverseEntity="ExpenseShareEntity"/>
+        <relationship name="trip" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TripEntity" inverseName="expenses" inverseEntity="TripEntity"/>
     </entity>
     <entity name="ExpenseShareEntity" representedClassName="ExpenseShareEntity" syncable="YES" codeGenerationType="class">
         <attribute name="isPaid" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="memberName" optional="YES" attributeType="String"/>
         <attribute name="shareAmount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="shareId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <relationship name="expense" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ExpenseEntity"/>
+        <relationship name="expense" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ExpenseEntity" inverseName="shares" inverseEntity="ExpenseEntity"/>
     </entity>
     <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -34,6 +34,7 @@
         <attribute name="startLongitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="tid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="title" optional="YES" attributeType="String"/>
+        <relationship name="expenses" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ExpenseEntity" inverseName="trip" inverseEntity="ExpenseEntity"/>
         <relationship name="members" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="TripMemberEntity" inverseName="trip" inverseEntity="TripMemberEntity"/>
         <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="trips" inverseEntity="UserEntity"/>
     </entity>

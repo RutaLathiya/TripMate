@@ -187,20 +187,25 @@ struct MapPickerView: View {
         let geocoder = CLGeocoder()
         let location = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
         geocoder.reverseGeocodeLocation(location) { placemarks, _ in
+            let name: String
             if let place = placemarks?.first {
-                let name = [place.locality, place.administrativeArea, place.country]
+                name = [place.locality, place.administrativeArea, place.country]
                     .compactMap { $0 }
                     .joined(separator: ", ")
-                let loc = TripModelsView(name: name.isEmpty ? "Selected Location" : name,
-                                         coordinate: coord)
-                DispatchQueue.main.async {
-                    selected = loc
-                    withAnimation {
-                        cameraPosition = .region(MKCoordinateRegion(
-                            center: coord,
-                            span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
-                        ))
-                    }
+            } else {
+                name = "\(String(format: "%.4f", coord.latitude)), \(String(format: "%.4f", coord.longitude))"
+            }
+            let loc = TripModelsView(
+                name: name.isEmpty ? "Selected Location" : name,
+                coordinate: coord
+            )
+            DispatchQueue.main.async {
+                self.selected = loc
+                withAnimation {
+                    self.cameraPosition = .region(MKCoordinateRegion(
+                        center: coord,
+                        span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
+                    ))
                 }
             }
         }

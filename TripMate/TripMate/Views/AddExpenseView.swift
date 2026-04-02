@@ -10,6 +10,7 @@ import SwiftUI
 struct AddExpenseView: View {
 
     @StateObject private var vm: AddExpenseViewModel
+    @ObservedObject private var paymentStore = PaymentStore()
     @Environment(\.dismiss) private var dismiss
 
     // MARK: - Init

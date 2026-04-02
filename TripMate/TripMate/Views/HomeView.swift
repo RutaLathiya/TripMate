@@ -567,8 +567,8 @@ struct HomePageView: View {
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
-                                    if let objID = SessionVM.currentUserObjectID {
-                                        Task { await tripVM.deleteTrip(trip) }
+                                    if SessionVM.currentUserObjectID != nil {
+                                        tripVM.deleteTrip(trip)
                                     }
                                 } label: {
                                     Label("Detele", systemImage: "trash")

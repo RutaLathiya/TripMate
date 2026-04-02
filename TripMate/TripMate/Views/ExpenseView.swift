@@ -15,6 +15,8 @@ struct ExpenseView: View {
     
     @State private var showAddExpense = false
     @State private var selectedTab = 0  // 0=Expenses 1=Balances 2=Settle
+    @State private var payTarget: ExpenseMember? = nil   // who to pay
+    @ObservedObject var paymentStore: PaymentStore       // passed in
     
     var body: some View {
         ZStack {

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7AD2929F55D8A6E589038BD4 /* Pods_TripMate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F31B0DA4228315CE5044993F /* Pods_TripMate.framework */; };
 		881E63252F726DC7007321C4 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 881E63242F726DC7007321C4 /* GoogleSignIn */; };
 		881E63272F726DC7007321C4 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 881E63262F726DC7007321C4 /* GoogleSignInSwift */; };
 		88A1E4D72F7143B00009C865 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 88A1E4D62F7143B00009C865 /* FirebaseAuth */; };
@@ -14,7 +15,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0A56B92F99B2BB7469777A1A /* Pods-TripMate.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TripMate.debug.xcconfig"; path = "Target Support Files/Pods-TripMate/Pods-TripMate.debug.xcconfig"; sourceTree = "<group>"; };
+		50FF2500263F5B1DDD7DA251 /* Pods-TripMate.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TripMate.release.xcconfig"; path = "Target Support Files/Pods-TripMate/Pods-TripMate.release.xcconfig"; sourceTree = "<group>"; };
 		88F3AA802F278D5A008FD304 /* TripMate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TripMate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F31B0DA4228315CE5044993F /* Pods_TripMate.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TripMate.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -47,17 +51,29 @@
 				88A1E4D72F7143B00009C865 /* FirebaseAuth in Frameworks */,
 				881E63252F726DC7007321C4 /* GoogleSignIn in Frameworks */,
 				881E63272F726DC7007321C4 /* GoogleSignInSwift in Frameworks */,
+				7AD2929F55D8A6E589038BD4 /* Pods_TripMate.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4312E168C8EDC444E620FE87 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				0A56B92F99B2BB7469777A1A /* Pods-TripMate.debug.xcconfig */,
+				50FF2500263F5B1DDD7DA251 /* Pods-TripMate.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		88F3AA772F278D5A008FD304 = {
 			isa = PBXGroup;
 			children = (
 				88F3AA822F278D5A008FD304 /* TripMate */,
 				88F3AA812F278D5A008FD304 /* Products */,
+				4312E168C8EDC444E620FE87 /* Pods */,
+				FB413FABD4B299F8DA4F9F03 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -69,6 +85,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		FB413FABD4B299F8DA4F9F03 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F31B0DA4228315CE5044993F /* Pods_TripMate.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -76,6 +100,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 88F3AA902F278D5D008FD304 /* Build configuration list for PBXNativeTarget "TripMate" */;
 			buildPhases = (
+				62621312B949127A680050DE /* [CP] Check Pods Manifest.lock */,
 				88F3AA7C2F278D5A008FD304 /* Sources */,
 				88F3AA7D2F278D5A008FD304 /* Frameworks */,
 				88F3AA7E2F278D5A008FD304 /* Resources */,
@@ -145,6 +170,31 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		62621312B949127A680050DE /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-TripMate-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		88F3AA7C2F278D5A008FD304 /* Sources */ = {
@@ -282,6 +332,7 @@
 		};
 		88F3AA912F278D5D008FD304 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0A56B92F99B2BB7469777A1A /* Pods-TripMate.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -319,6 +370,7 @@
 		};
 		88F3AA922F278D5D008FD304 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 50FF2500263F5B1DDD7DA251 /* Pods-TripMate.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
