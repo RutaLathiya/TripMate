@@ -324,6 +324,7 @@ import SwiftUI
 // MARK: - Main Tab View with Custom Tab Bar
 struct HomeView: View {
     
+    @StateObject private var expenseStore = ExpenseStore()
     @State private var selectedTab = 0
     @EnvironmentObject var SessionVM: SessionViewModel
     @EnvironmentObject var profileImageManager: ProfileImageManager
@@ -333,30 +334,7 @@ struct HomeView: View {
         ZStack(alignment: .bottom) {
             
             // ── Page Content ─────────────────────────
-            Group {
-                switch selectedTab {
-                case 0:
-                    NavigationStack { HomePageView() }
-                case 1:
-                    NavigationStack { MapView() }
-                        .safeAreaInset(edge: .bottom){
-                            Color.clear.frame(height: 100)
-                        }
-                case 2:
-                    NavigationStack { CreateTripView() }
-                        .safeAreaInset(edge: .bottom) {
-                            Color.clear.frame(height: 120)
-                        }
-                case 3:
-                    NavigationStack {
-                        ProfileView()
-                            .environmentObject(SessionVM)
-                            .environmentObject(profileImageManager)
-                    }
-                default:
-                    NavigationStack { HomePageView() }
-                }
-            }
+            currentTabView
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             //.padding(.bottom, 80) // space for tab bar
             .ignoresSafeArea(edges: .bottom)
@@ -382,6 +360,7 @@ struct HomeView: View {
             tabBarButton(index: 0, icon: "house.fill", label: "Home")
             tabBarButton(index: 1, icon: "map", label: "Map")
             tabBarButton(index: 2, icon: "plus", label: "Create Trip")
+           // tabBarButton(index: 3, icon: "dollarsign", label: "Pay Now")
             profileTabButton  // special button for profile
         }
         .padding(.horizontal, 16)
@@ -404,6 +383,39 @@ struct HomeView: View {
         )
         .padding(.horizontal, 20)
         .padding(.bottom, 25)
+    }
+    
+    @ViewBuilder
+    private var currentTabView: some View {
+        switch selectedTab {
+        case 0:
+            NavigationStack { HomePageView() }
+        case 1:
+            NavigationStack { MapView() }
+                .safeAreaInset(edge: .bottom) {
+                    Color.clear.frame(height: 100)
+                }
+        case 2:
+            NavigationStack { CreateTripView() }
+                .safeAreaInset(edge: .bottom) {
+                    Color.clear.frame(height: 120)
+                }
+//        case 3:
+//            NavigationStack {
+//                SettlementSummaryView(
+//                    expenseStore: ExpenseStore(),
+//                    currentUserName: SessionVM.currentUserName ?? "You"
+//                )
+//            }
+        case 3:
+            NavigationStack {
+                ProfileView()
+                    .environmentObject(SessionVM)
+                    .environmentObject(profileImageManager)
+            }
+        default:
+            NavigationStack { HomePageView() }
+        }
     }
     
     // MARK: - Regular Tab Button

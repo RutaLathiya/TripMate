@@ -33,12 +33,15 @@ struct RazorpayWebView: UIViewRepresentable {
 
         // Allow Razorpay JS to call back into Swift
         config.userContentController.add(context.coordinator, name: "razorpayHandler")
-
+        config.preferences.javaScriptEnabled = true
+        config.allowsInlineMediaPlayback = true
+        config.mediaTypesRequiringUserActionForPlayback = []
+        
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
         webView.backgroundColor = UIColor.clear
         webView.isOpaque = false
-        webView.scrollView.isScrollEnabled = false
+        webView.scrollView.isScrollEnabled = true
         return webView
     }
 
@@ -49,7 +52,11 @@ struct RazorpayWebView: UIViewRepresentable {
     // MARK: - Coordinator (handles JS → Swift callbacks)
     class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         let onResult: (RazorpayResult) -> Void
+        var paymentSucceeded = false
+        var checkoutOpened = false    // ✅ add this
+        var openedExternalURL = false    // ✅ add this
 
+        
         init(onResult: @escaping (RazorpayResult) -> Void) {
             self.onResult = onResult
         }
@@ -63,6 +70,7 @@ struct RazorpayWebView: UIViewRepresentable {
             DispatchQueue.main.async {
                 switch event {
                 case "payment.success":
+                    self.paymentSucceeded = true
                     let paymentId = body["razorpay_payment_id"] as? String ?? ""
                     let orderId   = body["razorpay_order_id"]   as? String ?? ""
                     let signature = body["razorpay_signature"]  as? String ?? ""
@@ -74,7 +82,9 @@ struct RazorpayWebView: UIViewRepresentable {
                     self.onResult(.failure(code: code, description: desc))
 
                 case "payment.dismiss":
-                    self.onResult(.dismissed)
+                    if !self.paymentSucceeded{
+                        self.onResult(.dismissed)
+                    }
 
                 default:
                     break
@@ -82,9 +92,37 @@ struct RazorpayWebView: UIViewRepresentable {
             }
         }
 
-        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            // Automatically open Razorpay checkout once page loads
-            webView.evaluateJavaScript("openRazorpay();", completionHandler: nil)
+        // ✅ Handle unsupported URLs (bank apps, UPI deep links)
+        func webView(_ webView: WKWebView,
+                     decidePolicyFor navigationAction: WKNavigationAction,
+                     decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            
+            if let url = navigationAction.request.url {
+                let urlString = url.absoluteString
+                
+                // ✅ Allow Razorpay and standard web URLs
+                if urlString.hasPrefix("https://") || urlString.hasPrefix("http://") || urlString == "about:blank" {
+                    decisionHandler(.allow)
+                    return
+                }
+                
+                // ✅ Open bank apps / UPI deep links in external app
+                if UIApplication.shared.canOpenURL(url) {
+                    UIApplication.shared.open(url)
+                }
+                
+                decisionHandler(.cancel)
+                return
+            }
+            
+            decisionHandler(.allow)
+        }
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            print("❌ WebView failed to load: \(error.localizedDescription)")
+        }
+
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            print("❌ WebView navigation failed: \(error.localizedDescription)")
         }
     }
 }
@@ -139,20 +177,23 @@ struct RazorpayHTMLBuilder {
                     currency: "INR",
                     name: "TripMate",
                     description: "\(note.isEmpty ? "Trip payment to \(receiverName)" : note)",
-                    order_id: "\(orderId)",
+                    \(orderId.isEmpty ? "" : "order_id: \"\(orderId)\",")
                     prefill: {
                         name: "\(receiverName)",
-                        contact: "\(receiverPhone)"
+                        contact: "\(receiverPhone.isEmpty ? "9999999999" : receiverPhone)",
+                        email: "test@tripmate.com"   // ✅ required for UPI
                     },
                     theme: { color: "#6C63FF" },
-                    modal: {
-                        ondismiss: function() {
-                            window.webkit.messageHandlers.razorpayHandler.postMessage({
-                                event: "payment.dismiss"
-                            });
-                        }
-                    },
-                    handler: function(response) {
+        modal: {
+            backdropclose: false,   // ✅ prevent closing on backdrop tap
+            escape: false,          // ✅ prevent escape key closing
+            handleback: false,      // ✅ prevent back button closing
+            ondismiss: function() {
+                window.webkit.messageHandlers.razorpayHandler.postMessage({
+                    event: "payment.dismiss"
+                });
+            }
+        },                    handler: function(response) {
                         window.webkit.messageHandlers.razorpayHandler.postMessage({
                             event: "payment.success",
                             razorpay_payment_id: response.razorpay_payment_id,
@@ -189,7 +230,8 @@ struct RazorpayCheckoutSheet: View {
     let keyId: String
     let orderId: String
     let amount: Double
-    let receiver: TripMember
+    let receiverName: String        // ✅ plain String
+    let receiverPhone: String
     let note: String
     let preferredMethod: String?
     let onResult: (RazorpayResult) -> Void
@@ -201,8 +243,8 @@ struct RazorpayCheckoutSheet: View {
             keyId: keyId,
             orderId: orderId,
             amount: amount,
-            receiverName: receiver.name,
-            receiverPhone: receiver.phone,
+            receiverName: receiverName,
+            receiverPhone: receiverPhone,
             note: note,
             preferredMethod: preferredMethod
         )
@@ -223,7 +265,7 @@ struct RazorpayCheckoutSheet: View {
                         onResult(.dismissed)
                         dismiss()
                     }
-                    .foregroundColor(Color("#6C63FF"))
+                    .foregroundColor(Color.AccentColor)
                 }
             }
         }
@@ -234,8 +276,8 @@ struct RazorpayCheckoutSheet: View {
 actor RazorpayOrderService {
 
     // ✅ Replace with your actual backend URL
-    private let backendURL = "https://your-backend.com/api/payment/create-order"
-
+    private let backendURL = "card sending 6 didgit otp "
+    
     func createOrder(amount: Double, tripId: Int, payerId: Int, receiverId: Int) async throws -> String {
         guard let url = URL(string: backendURL) else {
             throw URLError(.badURL)

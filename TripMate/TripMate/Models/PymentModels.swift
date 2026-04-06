@@ -146,6 +146,7 @@
 // These sit alongside your existing Expense/ExpenseMember models
 
 import Foundation
+import Combine
 
 // MARK: - Payment Method
 enum PaymentMethod: String, CaseIterable, Identifiable {
@@ -172,6 +173,7 @@ enum PaymentStatus: String {
     case pending    = "Pending"
     case failed     = "Failed"
     case processing = "Processing"
+    case initiated  = "initiated"
 
     var icon: String {
         switch self {
@@ -179,6 +181,7 @@ enum PaymentStatus: String {
         case .pending:    return "clock.fill"
         case .failed:     return "xmark.circle.fill"
         case .processing: return "arrow.triangle.2.circlepath"
+        case .initiated:  return "arrow.triangle.3.circlepath"
         }
     }
 
@@ -188,8 +191,19 @@ enum PaymentStatus: String {
         case .pending:    return "orange"
         case .failed:     return "red"
         case .processing: return "accent"
+        case .initiated:  return "blue"
         }
     }
+    
+    var displayName: String {
+            switch self {
+            case .success: return "SUCCESS"
+            case .pending: return "PENDING"
+            case .failed:  return "FAILED"
+            case .processing: return "PROCESSING"
+            case .initiated: return "INITIATED"
+            }
+        }
 }
 
 // MARK: - Payment Record
@@ -204,6 +218,7 @@ struct PaymentRecord: Identifiable {
     let date: Date
     let razorpayPaymentId: String?
     let note: String
+
 }
 
 // MARK: - Payment Store (simple in-memory store, replace with CoreData/API later)

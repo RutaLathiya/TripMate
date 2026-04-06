@@ -251,6 +251,7 @@ struct TransactionHistoryView: View {
             case .failed:     return Color(red: 1, green: 0.27, blue: 0.27)
             case .pending:    return .orange
             case .processing: return Color.AccentColor
+            case .initiated:  return .blue
             }
         }()
 

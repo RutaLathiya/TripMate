@@ -29,6 +29,8 @@
 	<string>68070130385-f5nu3127vqdkipcgfcg21uf9m1q8lft2.apps.googleusercontent.com</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
+		<key>Allow Local Networking</key>
+		<true/>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>

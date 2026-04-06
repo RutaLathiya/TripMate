@@ -59,6 +59,7 @@ struct FieldCard<Content: View>: View {
 // MARK: - Status Badge
 struct PaymentStatusBadge: View {
     let status: PaymentStatus
+    //let displayName: String
 
     var color: Color {
         switch status {

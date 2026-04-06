@@ -15,6 +15,7 @@ struct PayNowView: View {
 
     // MARK: - Inputs
     let receiverName: String      // e.g. "Raj"
+    let receiverPhone: String
     let prefilledAmount: Double   // the share amount from ExpenseMember.shareAmount
     let paymentStore: PaymentStore
     var onPaymentComplete: (() -> Void)? = nil
@@ -34,14 +35,16 @@ struct PayNowView: View {
     @State private var paymentOK       = false
 
     // ✅ Replace with your Razorpay KEY ID (rzp_test_... for test mode)
-    private let razorpayKeyId = "rzp_test_YOUR_KEY_ID"
+    private let razorpayKeyId = "rzp_test_SYWBOBTZAAqjmY"
     private let orderService  = RazorpayOrderService()
 
     init(receiverName: String,
+         receiverPhone: String,
          prefilledAmount: Double,
          paymentStore: PaymentStore,
          onPaymentComplete: (() -> Void)? = nil) {
         self.receiverName      = receiverName
+        self.receiverPhone     = receiverPhone
         self.prefilledAmount   = prefilledAmount
         self.paymentStore      = paymentStore
         self.onPaymentComplete = onPaymentComplete
@@ -66,17 +69,17 @@ struct PayNowView: View {
         NavigationStack {
             ZStack {
                 Color.BackgroundColor.ignoresSafeArea()
-
+                
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 20) {
-
+                        
                         receiverHeader
                         amountCard
                         methodCard
                         noteCard
                         payButton
                         securityNote
-
+                        
                         Spacer(minLength: 32)
                     }
                     .padding(.horizontal, 20)
@@ -98,7 +101,7 @@ struct PayNowView: View {
                     orderId: currentOrderId,
                     amount: parsedAmount,
                     receiverName: receiverName,
-                    receiverPhone: "",
+                    receiverPhone: receiverPhone,
                     note: note,
                     preferredMethod: razorpayMethod,
                     onResult: handleCheckoutResult
@@ -116,7 +119,6 @@ struct PayNowView: View {
             }
         }
     }
-
     // MARK: - Subviews
 
     private var receiverHeader: some View {
@@ -281,11 +283,11 @@ struct PayNowView: View {
                     )
             )
         }
-        .disabled(!isValid || isCreatingOrder)
+        .disabled(!isValid)
     }
 
     private var buttonLabel: String {
-        if isCreatingOrder { return "CREATING ORDER..." }
+       // if isCreatingOrder { return "CREATING ORDER..." }
         let amt = parsedAmount > 0 ? "  ₹\(Int(parsedAmount))" : ""
         return selectedMethod == .cash ? "MARK AS PAID\(amt)" : "PAY\(amt)"
     }
@@ -295,7 +297,7 @@ struct PayNowView: View {
         if selectedMethod != .cash {
             Text("SECURED BY RAZORPAY · 256-BIT SSL")
                 .font(.system(size: 8, design: .monospaced))
-                .foregroundColor(Color.AccentColor.opacity(0.25))
+                .foregroundColor(Color.AccentColor.opacity(0.5))
                 .kerning(1.5)
         }
     }
@@ -323,7 +325,7 @@ struct PayNowView: View {
                     receiverId: 1   // ← pass actual receiver member_id
                 )
                 await MainActor.run {
-                    currentOrderId  = orderId
+                    currentOrderId  = ""
                     isCreatingOrder = false
                     showCheckout    = true
                 }
@@ -337,6 +339,8 @@ struct PayNowView: View {
                 }
             }
         }
+            currentOrderId = ""
+            showCheckout   = true
     }
 
     private func handleCheckoutResult(_ result: RazorpayResult) {
@@ -375,6 +379,6 @@ struct PayNowView: View {
 }
 
 #Preview {
-    PayNowView(receiverName: "Raj", prefilledAmount: 450, paymentStore: PaymentStore())
-        .preferredColorScheme(.dark)
+    PayNowView(receiverName: "Raj", receiverPhone: "9999999999", prefilledAmount: 450, paymentStore: PaymentStore())
+        .preferredColorScheme(.light)
 }

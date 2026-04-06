@@ -346,7 +346,7 @@ struct TripDetailView: View {
             NavigationLink(destination: ExpenseView(
                 store: expenseStore,
                 tripName: tripName,
-                tripMembers: tripMemberNames
+                tripMembers: tripMemberNames, paymentStore: PaymentStore()
             )) {
                 featureCard(
                     icon: "indianrupeesign.circle.fill",
@@ -401,6 +401,7 @@ struct TripDetailView: View {
                         fullWidth: false
                     )
                 }
+                
             }
             // Add to cardsGrid in TripDetailView
             Button {
@@ -411,6 +412,21 @@ struct TripDetailView: View {
                     title: "Route",
                     subtitle: "View trip route",
                     accent: Color(red: 0.2, green: 0.5, blue: 0.9),
+                    fullWidth: true
+                )
+            }
+            // Settle Up — full width, right after Expenses card
+            NavigationLink(destination: SettlementSummaryView(
+                expenseStore: expenseStore,
+                currentUserName: SessionVM.currentUser
+            )) {
+                featureCard(
+                    icon: "arrow.left.arrow.right.circle.fill",
+                    title: "Settle Up",
+                    subtitle: expenseStore.expenses.isEmpty
+                        ? "Split & pay"
+                        : "\(expenseStore.settlements().count) settlement(s)",
+                    accent: Color(red: 0.9, green: 0.6, blue: 0.1),
                     fullWidth: true
                 )
             }
