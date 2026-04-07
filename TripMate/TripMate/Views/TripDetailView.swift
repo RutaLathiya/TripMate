@@ -370,7 +370,7 @@ struct TripDetailView: View {
                         fullWidth: false
                     )
                 }
-                NavigationLink(destination: ChecklistView(tripName: tripName)) {
+                NavigationLink(destination: ChecklistView(tripName: tripName, tripObjectID: trip.objectID)) {
                     featureCard(
                         icon: "checklist",
                         title: "Checklist",
@@ -513,13 +513,13 @@ struct JournalView: View {
     }
 }
 
-struct ChecklistView: View {
-    let tripName: String
-    var body: some View {
-        ZStack { Color.BackgroundColor.ignoresSafeArea() }
-        .navigationTitle("Checklist")
-    }
-}
+//struct ChecklistView: View {
+//    let tripName: String
+//    var body: some View {
+//        ZStack { Color.BackgroundColor.ignoresSafeArea() }
+//        .navigationTitle("Checklist")
+//    }
+//}
 
 struct FuelCalculatorView: View {
     let tripName: String

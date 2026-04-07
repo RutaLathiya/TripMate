@@ -54,7 +54,7 @@ struct RazorpayWebView: UIViewRepresentable {
         let onResult: (RazorpayResult) -> Void
         var paymentSucceeded = false
         var checkoutOpened = false    // ✅ add this
-        var openedExternalURL = false    // ✅ add this
+        var openedExternalURL = false    // ✅ add this  `
 
         
         init(onResult: @escaping (RazorpayResult) -> Void) {
@@ -82,7 +82,7 @@ struct RazorpayWebView: UIViewRepresentable {
                     self.onResult(.failure(code: code, description: desc))
 
                 case "payment.dismiss":
-                    if !self.paymentSucceeded{
+                    if !self.paymentSucceeded && !self.openedExternalURL {
                         self.onResult(.dismissed)
                     }
 
@@ -108,6 +108,7 @@ struct RazorpayWebView: UIViewRepresentable {
                 
                 // ✅ Open bank apps / UPI deep links in external app
                 if UIApplication.shared.canOpenURL(url) {
+                    self.openedExternalURL = true
                     UIApplication.shared.open(url)
                 }
                 
@@ -124,8 +125,25 @@ struct RazorpayWebView: UIViewRepresentable {
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
             print("❌ WebView navigation failed: \(error.localizedDescription)")
         }
+        
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+                if !checkoutOpened {
+                    checkoutOpened = true
+                    webView.evaluateJavaScript("openRazorpay();", completionHandler: nil)
+                }
+            }
+
+            func webView(_ webView: WKWebView,
+                         createWebViewWith configuration: WKWebViewConfiguration,
+                         for navigationAction: WKNavigationAction,
+                         windowFeatures: WKWindowFeatures) -> WKWebView? {
+                if let url = navigationAction.request.url {
+                    webView.load(URLRequest(url: url))
+                }
+                return nil
+            }
+        }
     }
-}
 
 // MARK: - HTML Generator for Razorpay Web Checkout
 struct RazorpayHTMLBuilder {
@@ -276,7 +294,8 @@ struct RazorpayCheckoutSheet: View {
 actor RazorpayOrderService {
 
     // ✅ Replace with your actual backend URL
-    private let backendURL = "card sending 6 didgit otp "
+    //private let backendURL = "http://192.168.29.240:3000/api/payment/create-order"
+    private let backendURL = "http://localhost:3000/api/payment/create-order"
     
     func createOrder(amount: Double, tripId: Int, payerId: Int, receiverId: Int) async throws -> String {
         guard let url = URL(string: backendURL) else {
