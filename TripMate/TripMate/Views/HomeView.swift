@@ -369,20 +369,20 @@ struct HomeView: View {
         .background(
             ZStack {
                 // glass base
-                Color.white.opacity(0.55)
-                Color.BackgroundColor.opacity(0.6)
+                Color.white.opacity(0.1)
+                Color.BackgroundColor.opacity(0.32)
             }
                 .frame(height: 65)
-                .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         )
         .overlay(
             // top border line
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .stroke(Color.AccentColor.opacity(0.2), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(Color.AccentColor.opacity(0.4), lineWidth: 2)
                 .frame(height: 65)
         )
         .padding(.horizontal, 20)
-        .padding(.bottom, 25)
+        .padding(.bottom, -6)
     }
     
     @ViewBuilder
@@ -440,11 +440,11 @@ struct HomeView: View {
                     .foregroundColor(isActive ? Color.AccentColor : Color.AccentColor.opacity(0.4))
                 
                 // active indicator dot
-                Circle()
-                    .fill(Color.AccentColor)
-                    .frame(width: 4, height: 4)
-                    .opacity(isActive ? 1 : 0)
-                    .animation(.spring(response: 0.3), value: isActive)
+//                Circle()
+//                    .fill(Color.AccentColor)
+//                    .frame(width: 4, height: 4)
+//                    .opacity(isActive ? 1 : 0)
+//                    .animation(.spring(response: 0.3), value: isActive)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 60)
@@ -497,18 +497,19 @@ struct HomeView: View {
                 .frame(width: 28, height: 28)
                 .scaleEffect(isActive ? 1.1 : 1.0)
                 .animation(.spring(response: 0.3), value: isActive)
+                .padding(.top, 3)
                 
                 Text("Profile")
-                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .font(.system(size: 8, weight: .medium, design: .monospaced))
                     .foregroundColor(isActive ? Color.AccentColor : Color.AccentColor.opacity(0.4))
-                    .padding(.top, 1.5)
+                    .padding(.bottom, 2)
                 
                 // active indicator dot
-                Circle()
-                    .fill(Color.AccentColor)
-                    .frame(width: 4, height: 4)
-                    .opacity(isActive ? 1 : 0)
-                    .animation(.spring(response: 0.3), value: isActive)
+//                Circle()
+//                    .fill(Color.AccentColor)
+//                    .frame(width: 4, height: 4)
+//                    .opacity(isActive ? 1 : 0)
+//                    .animation(.spring(response: 0.3), value: isActive)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 60)
@@ -563,10 +564,11 @@ struct HomePageView: View {
                                 TripCardView(trip: trip)
                             }
                             //.buttonStyle(.plain)
+//                            /.labelsHidden()
                             .listRowInsets(EdgeInsets())
                             .listRowBackground(Color.BackgroundColor)
                             .listRowSeparator(.hidden)
-                            .padding(.vertical, 8)
+                            .padding(.vertical, 4)
                             // swipe to edit
                             .swipeActions(edge: .leading, allowsFullSwipe: false){
                                 NavigationLink{

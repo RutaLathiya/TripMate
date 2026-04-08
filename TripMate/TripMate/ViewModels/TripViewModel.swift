@@ -16,7 +16,8 @@ final class TripViewModel: ObservableObject {
     @Published var isLoading:    Bool         = false
     @Published var errorMessage: String?      = nil
     @Published var isSaved:      Bool         = false
-
+    @Published var lastSavedTrip: TripEntity?
+    
     private let repository: TripRepositoryProtocol
 
     init(repository: TripRepositoryProtocol = TripRepository()) {
@@ -50,8 +51,9 @@ final class TripViewModel: ObservableObject {
                       }
                       print("✅ Saved \(friends.count) members")
                   }
-            
+            lastSavedTrip = trip
             isSaved = true
+            
             await fetchTrips(userObjectID: userObjectID)
         } catch {
             errorMessage = "Failed to save trip: \(error.localizedDescription)"

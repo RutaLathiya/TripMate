@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct TripCardView: View {
 
@@ -32,7 +33,7 @@ struct TripCardView: View {
                 )
                 .frame(height: 90)
 
-                Image(systemName: "airplane")
+                Image(systemName: "car.2")
                     .font(.system(size: 36))
                     .foregroundColor(.white.opacity(0.15))
                     .frame(maxWidth: .infinity, alignment: .trailing)
@@ -73,3 +74,16 @@ struct TripCardView: View {
 }
 
 
+#Preview {
+    let context = PersistenceController.preview.container.viewContext
+    
+    let trip = TripEntity(context: context)
+    trip.title = "Goa Trip 🌴"
+    trip.destination = "Goa"
+    trip.startDate = Date()
+    trip.endDate = Calendar.current.date(byAdding: .day, value: 5, to: Date())
+    
+    return TripCardView(trip: trip)
+        .environment(\.managedObjectContext, context)
+        .background(Color.BackgroundColor)
+}

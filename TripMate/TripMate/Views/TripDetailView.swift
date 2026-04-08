@@ -150,8 +150,8 @@ struct TripDetailView: View {
                     heroSection
                     
                     tripActionButtons
-                                           .padding(.horizontal, 20)
-                                           .padding(.top, 16)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 24)
                     cardsGrid
                         .padding(.horizontal, 20)
                         .padding(.top, 24)
@@ -170,6 +170,7 @@ struct TripDetailView: View {
                     }
                 }
             }
+            //.padding(.trailing)
             .navigationDestination(isPresented: $showEditView) {
                 EditTripView(trip: trip)
                     .environmentObject(SessionVM)
@@ -269,36 +270,20 @@ struct TripDetailView: View {
     
     // MARK: - Hero Section
     private var heroSection: some View {
-        ZStack(alignment: .bottomLeading) {
-            // gradient background
-            LinearGradient(
-                colors: [
-                    Color.AccentColor.opacity(0.35),
-                    Color.AccentColor.opacity(0.1),
-                    Color.BackgroundColor
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 180)
-            
-            VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading) {
                 // Trip name big
                 Text(tripName.uppercased())
                     .font(.system(size: 32, weight: .heavy, design: .rounded))
                     .foregroundColor(Color.AccentColor)
                     .kerning(2)
-                
-                // Date + location row
-                HStack(spacing: 16) {
-//                    Label("\(startDate) → \(endDate)", systemImage: "calendar")
-//                        .font(.system(size: 11, design: .monospaced))
-//                        .foregroundColor(Color.AccentColor.opacity(0.7))
-                    
+                    .padding(.horizontal, 15)
+                    .padding(.top, -60)
+            
                     Label(startLocation, systemImage: "mappin.circle.fill")
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(.system(size: 13, design: .monospaced))
                         .foregroundColor(Color.AccentColor.opacity(0.7))
-                }
+                        .padding(.horizontal, 17)
+                        .padding(.top, -40)
                 
                 // Members avatars
                 HStack(spacing: -8) {
@@ -318,9 +303,14 @@ struct TripDetailView: View {
                         .foregroundColor(Color.AccentColor.opacity(0.6))
                         .padding(.leading, 14)
                 }
-            }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 15)
+            .padding(.top, -30)
+            
+            Divider()
+                .opacity(0.9)
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
         }
     }
     
@@ -359,29 +349,7 @@ struct TripDetailView: View {
                 )
             }
             
-            // Row: Journal + Checklist
-            HStack(spacing: 14) {
-                NavigationLink(destination: JournalView(tripName: tripName)) {
-                    featureCard(
-                        icon: "book.fill",
-                        title: "Journal",
-                        subtitle: "Daily notes",
-                        accent: Color(red: 0.8, green: 0.5, blue: 0.2),
-                        fullWidth: false
-                    )
-                }
-                NavigationLink(destination: ChecklistView(tripName: tripName, tripObjectID: trip.objectID)) {
-                    featureCard(
-                        icon: "checklist",
-                        title: "Checklist",
-                        subtitle: "Pack items",
-                        accent: Color(red: 0.6, green: 0.3, blue: 0.8),
-                        fullWidth: false
-                    )
-                }
-            }
-            
-            // Row: Fuel + SOS
+            // Row: Fuel + Checklist
             HStack(spacing: 14) {
                 NavigationLink(destination: FuelCalculatorView(tripName: tripName)) {
                     featureCard(
@@ -389,6 +357,31 @@ struct TripDetailView: View {
                         title: "Fuel Log",
                         subtitle: "Track mileage",
                         accent: Color(red: 0.9, green: 0.3, blue: 0.3),
+                        fullWidth: false
+                    )
+                }
+                NavigationLink(destination: ChecklistView(tripName: tripName, tripObjectID: trip.objectID)) {
+                    featureCard(
+                        icon: "checklist",
+                        title: "Check list",
+                        subtitle: "Pack items",
+                        accent: Color(red: 0.6, green: 0.3, blue: 0.8),
+                        fullWidth: false
+                    )
+                }
+            }
+            
+            // Row: Journal + SOS
+            HStack(spacing: 14) {
+                NavigationLink(destination: JournalView(
+                    tripName: tripName,
+                    tripObjectID: trip.objectID
+                )) {
+                    featureCard(
+                        icon: "book.fill",
+                        title: "Journal",
+                        subtitle: "Write memories",
+                        accent: Color(red: 0.8, green: 0.5, blue: 0.2),
                         fullWidth: false
                     )
                 }
@@ -451,22 +444,27 @@ struct TripDetailView: View {
                     .foregroundColor(accent)
             }
             
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.system(size: 15, weight: .bold, design: .monospaced))
                     .foregroundColor(Color.AccentColor)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                 //   .kerning(0.4)
+
                 Text(subtitle)
                     .font(.system(size: 11, design: .monospaced))
-                    .foregroundColor(Color.AccentColor.opacity(0.5))
+                    .foregroundColor(Color.AccentColor.opacity(0.6))
+                    .lineLimit(2)
             }
             
             Spacer()
             
             Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 9, weight: .semibold))
                 .foregroundColor(Color.AccentColor.opacity(0.3))
         }
-        .padding(16)
+        .padding(11)
         .frame(maxWidth: fullWidth ? .infinity : .infinity)
         .background(Color.BackgroundColor)
         .cornerRadius(16)
@@ -500,18 +498,22 @@ extension DateFormatter {
     trip.destination = "Goa, India"
     return NavigationStack {
         TripDetailView(trip: trip)
+            .environment(\.managedObjectContext, context)
+            .environmentObject(SessionViewModel())
     }
 }
+
+
 
 
 // MARK: - Stub Views (replace when built)
-struct JournalView: View {
-    let tripName: String
-    var body: some View {
-        ZStack { Color.BackgroundColor.ignoresSafeArea() }
-        .navigationTitle("Journal")
-    }
-}
+//struct JournalView: View {
+//    let tripName: String
+//    var body: some View {
+//        ZStack { Color.BackgroundColor.ignoresSafeArea() }
+//        .navigationTitle("Journal")
+//    }
+//}
 
 //struct ChecklistView: View {
 //    let tripName: String

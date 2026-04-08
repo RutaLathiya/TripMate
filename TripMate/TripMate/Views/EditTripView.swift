@@ -81,6 +81,7 @@ struct EditTripView: View {
             }
 
             saveButtonBar
+                .padding(.bottom, 70)
         }
         .overlay { modalOverlay }
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: activeModal)
@@ -481,11 +482,11 @@ struct EditTripView: View {
                 .padding(.vertical, 19)
                 .background(ZStack {
                     Color.white.opacity(0.1)
-                    Color.BackgroundColor.opacity(0.5)
+                    Color.BackgroundColor.opacity(0.20)
                 })
                 .clipShape(RoundedRectangle(cornerRadius: 18))
-                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.6), lineWidth: 1.5))
-                .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white, lineWidth: 1.5))
+                .shadow(color: Color.white, radius: 3, y: 1)
         }
         .buttonStyle(ScaleButtonStyle())
         .disabled(!canSave)

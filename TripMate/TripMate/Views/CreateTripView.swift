@@ -975,6 +975,7 @@
 import SwiftUI
 import MapKit
 import Combine
+import CoreData
 
 struct CreateTripView: View {
 
@@ -1005,6 +1006,7 @@ struct CreateTripView: View {
     @StateObject private var tripVM = TripViewModel()
     
     @EnvironmentObject var SessionVM: SessionViewModel
+    
     // MARK: - Computed
 
     private var canStart: Bool {
@@ -1022,6 +1024,9 @@ struct CreateTripView: View {
         return "SET DESTINATION TO CONTINUE"
     }
 
+    
+  
+    
     // MARK: - Body
 
     var body: some View {
@@ -1660,10 +1665,14 @@ struct CreateTripView: View {
                     userObjectID: objID,
                     friends: friendsVM.friends
                 )
-                if tripVM.isSaved {
-                    withAnimation { tripStarted = true }
-                    hasSaved = true
-                }
+                if tripVM.isSaved, let savedTrip = tripVM.lastSavedTrip {
+                        let repo = ChecklistRepository()
+                        for item in packItems {
+                            repo.addItem(name: item.text, tripID: savedTrip.objectID)
+                        }
+                        withAnimation { tripStarted = true }
+                        hasSaved = true
+                    }
             }
         } label: {
             Text(startButtonLabel)
@@ -1675,15 +1684,15 @@ struct CreateTripView: View {
                 .background(
                     ZStack {
                         Color.white.opacity(0.1)
-                        Color.BackgroundColor.opacity(0.5)
+                        Color.BackgroundColor.opacity(0.32)
                     }
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 18))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
-                        .stroke(Color.white.opacity(0.6), lineWidth: 1.5)
+                        .stroke(Color.white, lineWidth: 1.5)
                 )
-                .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
+                .shadow(color: Color.white, radius: 3, y: 1)
         }
         .buttonStyle(ScaleButtonStyle())
         .disabled(!canStart)
@@ -1691,7 +1700,7 @@ struct CreateTripView: View {
         .padding(.bottom, 36)
     }
     
-    
+
     
 
 

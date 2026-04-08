@@ -979,12 +979,12 @@ struct AddFriendSheet: View {
                         nameField
                         phoneField
                         linkedToggle
-                        Spacer(minLength: 8)
+                        Spacer(minLength: -2)
                         addButton
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 28)
-                    .padding(.bottom, 50)
+                    .safeAreaPadding(.bottom, 20)
                 }
             }
         }
@@ -1119,7 +1119,8 @@ struct AddFriendSheet: View {
             guard let friend = vm.buildFriend() else { return }
             onAdd(friend)
             dismiss()
-        } label: {
+        }
+        label: {
             Text("🚗 ADD TO TRIP")
                 .font(.system(size: 18, weight: .heavy, design: .rounded))
                 .kerning(2)
@@ -1131,6 +1132,10 @@ struct AddFriendSheet: View {
                 .shadow(
                     color: vm.canAdd ? Color.AccentColor.opacity(0.35) : Color.clear,
                     radius: 14, y: 4
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(Color.AccentColor, lineWidth: 1.5)
                 )
         }
         .disabled(!vm.canAdd)

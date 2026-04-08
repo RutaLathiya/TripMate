@@ -66,7 +66,7 @@ struct ChecklistView: View {
     let tripObjectID: NSManagedObjectID
 
     @State private var repo = ChecklistRepository()
-    @State private var items: [ChecklistItemEntity] = []
+    //@State private var items: [ChecklistItemEntity] = []
     @State private var newItem = ""
     @FocusState private var fieldFocused: Bool
 
@@ -126,7 +126,7 @@ struct ChecklistView: View {
         }
         .navigationTitle("Checklist")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { loadItems() }
+       // .onAppear { loadItems() }
     }
 
     // MARK: - Progress Card
@@ -238,7 +238,7 @@ struct ChecklistView: View {
                 ForEach(suggestions, id: \.self) { suggestion in
                     Button {
                         repo.addItem(name: suggestion, tripID: tripObjectID)
-                        loadItems()
+                        //loadItems()
                     } label: {
                         Text(suggestion)
                             .font(.system(size: 11, design: .monospaced))
@@ -266,7 +266,7 @@ struct ChecklistView: View {
             Button {
                 withAnimation(.spring(response: 0.25)) {
                     repo.toggleItem(item)
-                    loadItems()
+                    //loadItems()
                 }
             } label: {
                 ZStack {
@@ -293,7 +293,7 @@ struct ChecklistView: View {
             Button {
                 withAnimation {
                     repo.deleteItem(item)
-                    loadItems()
+                   // loadItems()
                 }
             } label: {
                 Image(systemName: "xmark")
@@ -318,15 +318,15 @@ struct ChecklistView: View {
         guard !trimmed.isEmpty else { return }
         withAnimation {
             repo.addItem(name: trimmed, tripID: tripObjectID)
-            loadItems()
+            //loadItems()
         }
         newItem = ""
     }
 
-    private func loadItems() {
-        items = repo.fetchItems(for: tripObjectID)
-        print("📋 Loaded \(items.count) checklist items")
-    }
+//    private func loadItems() {
+//        items = repo.fetchItems(for: tripObjectID)
+//        print("📋 Loaded \(items.count) checklist items")
+//    }
 }
 
 // MARK: - FlowLayout (wrapping chip layout)
