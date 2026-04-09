@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="24G90" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="AdminEntity" representedClassName="AdminEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="adminId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="adminName" optional="YES" attributeType="String"/>
+        <attribute name="password" optional="YES" attributeType="String"/>
+        <attribute name="phoneNo" optional="YES" attributeType="String"/>
+        <attribute name="profilePic" optional="YES" attributeType="String"/>
+        <attribute name="role" optional="YES" attributeType="String"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+    </entity>
     <entity name="ChecklistItemEntity" representedClassName="ChecklistItemEntity" syncable="YES" codeGenerationType="class">
         <attribute name="isDone" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="itemId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
@@ -27,6 +36,16 @@
         <attribute name="shareId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="expense" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ExpenseEntity" inverseName="shares" inverseEntity="ExpenseEntity"/>
     </entity>
+    <entity name="FuelLogEntity" representedClassName="FuelLogEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="fuelId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="liters" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="location" optional="YES" attributeType="String"/>
+        <attribute name="odometer" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="pricePerLiter" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="totalCost" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="trip" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TripEntity" inverseName="fuelLogs" inverseEntity="TripEntity"/>
+    </entity>
     <entity name="JournalEntity" representedClassName="JournalEntity" syncable="YES" codeGenerationType="class">
         <attribute name="entryDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="journalId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
@@ -34,6 +53,15 @@
         <attribute name="photoData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <relationship name="trip" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TripEntity" inverseName="journals" inverseEntity="TripEntity"/>
+    </entity>
+    <entity name="StopEntity" representedClassName="StopEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="latitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="longitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="note" optional="YES" attributeType="String"/>
+        <attribute name="stopId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="stopName" optional="YES" attributeType="String"/>
+        <relationship name="trip" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TripEntity" inverseName="stops" inverseEntity="TripEntity"/>
     </entity>
     <entity name="TripEntity" representedClassName="TripEntity" syncable="YES" codeGenerationType="class">
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -48,8 +76,10 @@
         <attribute name="title" optional="YES" attributeType="String"/>
         <relationship name="checklistItems" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChecklistItemEntity" inverseName="trip" inverseEntity="ChecklistItemEntity"/>
         <relationship name="expenses" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ExpenseEntity" inverseName="trip" inverseEntity="ExpenseEntity"/>
+        <relationship name="fuelLogs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FuelLogEntity" inverseName="trip" inverseEntity="FuelLogEntity"/>
         <relationship name="journals" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="JournalEntity" inverseName="trip" inverseEntity="JournalEntity"/>
         <relationship name="members" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="TripMemberEntity" inverseName="trip" inverseEntity="TripMemberEntity"/>
+        <relationship name="stops" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="StopEntity" inverseName="trip" inverseEntity="StopEntity"/>
         <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="trips" inverseEntity="UserEntity"/>
     </entity>
     <entity name="TripMemberEntity" representedClassName="TripMemberEntity" syncable="YES" codeGenerationType="class">
@@ -67,6 +97,7 @@
         <attribute name="password" optional="YES" attributeType="String"/>
         <attribute name="phoneNo" optional="YES" attributeType="String"/>
         <attribute name="profilePic" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
         <attribute name="uid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="members" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TripMemberEntity" inverseName="user" inverseEntity="TripMemberEntity"/>
         <relationship name="trips" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="TripEntity" inverseName="user" inverseEntity="TripEntity"/>

@@ -66,6 +66,7 @@ class RegistrationViewModel: ObservableObject {
         user.setValue(password, forKey: "password")
         user.setValue(phoneNo, forKey: "phoneNo")
         user.setValue(Date(), forKey: "created_at")
+        user.setValue("Active", forKey: "status")
         
         // ✅ Add this — grab current Firebase user and save UID
         if let firebaseUser = Auth.auth().currentUser {

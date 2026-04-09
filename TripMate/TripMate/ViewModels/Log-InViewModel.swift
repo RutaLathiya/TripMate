@@ -72,6 +72,11 @@ class LogInViewModel: ObservableObject {
             if let user = results.first {                    // 👈 already UserEntity, no cast needed
                 let storedPassword = user.password
                 if storedPassword == password {
+                    if user.status == "Inactive" {
+                        errorMessage = "Your account has been deactivated. Please contact admin."
+                        print("❌ Account inactive")
+                        return false
+                    }
                     loggedInName = user.name ?? email
                     loggedInUID = user.uid                   // 👈 direct property access, no casting
                     loggedInObjectID = user.objectID  // ✅ Add this

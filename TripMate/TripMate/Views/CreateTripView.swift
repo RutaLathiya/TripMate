@@ -1670,6 +1670,16 @@ struct CreateTripView: View {
                         for item in packItems {
                             repo.addItem(name: item.text, tripID: savedTrip.objectID)
                         }
+                    
+                    let stopVM = StopViewModel()
+                    for stop in stops {
+                        stopVM.addStop(to: savedTrip,
+                                       name: stop.location.name,
+                                       date: Date(),
+                                       note: "",
+                                       latitude: stop.location.coordinate.latitude,
+                                       longitude: stop.location.coordinate.longitude)
+                    }
                         withAnimation { tripStarted = true }
                         hasSaved = true
                     }

@@ -560,22 +560,24 @@ struct HomePageView: View {
             } else {
                 List {
                         ForEach(filteredTrips, id: \.tid) { trip in
-                            NavigationLink(value: trip) {
+                            ZStack {
+                                NavigationLink(value: trip) { EmptyView() }
+                                    .opacity(0)
                                 TripCardView(trip: trip)
                             }
                             //.buttonStyle(.plain)
-//                            /.labelsHidden()
+                            //.labelsHidden()
                             .listRowInsets(EdgeInsets())
                             .listRowBackground(Color.BackgroundColor)
                             .listRowSeparator(.hidden)
-                            .padding(.vertical, 4)
+                            .padding(.vertical, 6)
                             // swipe to edit
                             .swipeActions(edge: .leading, allowsFullSwipe: false){
                                 NavigationLink{
                                     EditTripView(trip: trip)
                                         .environmentObject(SessionVM)
                                 } label : {
-                                    Label("Edit" ,systemImage: "pencil")
+                                    Label("Edit" ,systemImage: "square.and.pencil")
                                 }
                                 .tint(Color.AccentColor )
                             }
@@ -590,11 +592,12 @@ struct HomePageView: View {
                             }
                         }
                     //.padding(.top, 10)
-                    .padding(.bottom, 120)
+                    //.padding(.bottom, 120)
                 }
                           .listStyle(.plain)
                           .background(Color.BackgroundColor)
                           .scrollContentBackground(.hidden)
+                          .contentMargins(.bottom, 120, for: .scrollContent)
             }
         }
         .searchable(text: $searchText,

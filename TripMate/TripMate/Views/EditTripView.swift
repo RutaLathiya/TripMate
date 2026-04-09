@@ -88,7 +88,10 @@ struct EditTripView: View {
         .animation(.easeInOut(duration: 0.25), value: activeSection)
         //.navigationTitle("Edit Trip")
         //.navigationBarTitleDisplayMode(.inline)
-        .onAppear { loadExistingMembers() }
+        .onAppear {
+            loadExistingMembers()
+            loadExistingStops()
+        }
 
         .alert("Trip Updated! ✅", isPresented: $tripVM.isSaved) {
             Button("OK", role: .cancel) {
@@ -119,6 +122,23 @@ struct EditTripView: View {
         }
     }
 
+    private func loadExistingStops() {
+        let repo = StopRepository()
+        let existing = repo.fetchStops(for: trip)
+        stops = existing.map { stop in
+            TripStop(
+                location: TripModelsView(
+                    name: stop.stopName ?? "",
+                    coordinate: CLLocationCoordinate2D(
+                        latitude: stop.latitude,
+                        longitude: stop.longitude
+                    )
+                ),
+                index: 0
+            )
+        }
+    }
+    
     // MARK: - Modals
     @ViewBuilder
     private var modalOverlay: some View {
@@ -383,7 +403,14 @@ struct EditTripView: View {
                                 .font(.system(size: 10, design: .monospaced)).foregroundColor(.AccentColor.opacity(0.5))
                         }
                         Spacer()
-                        Button { withAnimation { stops.removeAll { $0.id == stop.id } } } label: {
+                        Button { withAnimation { stops.removeAll { $0.id == stop.id } }
+                            let repo = StopRepository()
+                            let saved = repo.fetchStops(for: trip)
+                            if let match = saved.first(where: { $0.stopName == stop.location.name})
+                            {
+                                repo.deleteStop(match)
+                            }
+                        } label: {
                             Image(systemName: "xmark").font(.system(size: 11, weight: .bold))
                                 .foregroundColor(Color(red: 1, green: 0.27, blue: 0.27))
                                 .frame(width: 30, height: 30)
@@ -472,6 +499,20 @@ struct EditTripView: View {
                     friends:  friendsVM.friends,
                     userObjectID: objID
                 )
+                let repo = StopRepository()
+                let oldStops = repo.fetchStops(for: trip)
+                for old in oldStops {
+                    repo.deleteStop(old)
+                }
+                for stop in stops {
+                    repo.addStop(name: stop.location.name,
+                                 date: Date(),
+                                 note: "",
+                                 latitude: stop.location.coordinate.latitude,
+                                 longitude: stop.location.coordinate.longitude,
+                                 tripID: trip.objectID
+                    )
+                }
             }
         } label: {
             Text(canSave ? "💾  SAVE CHANGES" : "FILL ALL FIELDS TO SAVE")

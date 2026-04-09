@@ -763,27 +763,28 @@ import SwiftUI
 
 
 struct RegistrationView: View {
-
+    
     // MARK: - Dependencies
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject var SessionVM: SessionViewModel
-
+    
     // MARK: - ViewModels
     @StateObject private var vm          = RegistrationViewModel()
     @StateObject private var authVM      = AuthViewModel()
     @StateObject private var emailOTPVM  = EmailOTPViewModel()
     @StateObject private var googleVM    = GoogleSignInViewModel()
-
+    
     // MARK: - Local State
     @State private var showPhoneOTPSheet = false
     @State private var showError         = false
     @State private var errorMessage      = ""
-
+    
     // MARK: - Body
     var body: some View {
-        ZStack {
-            Color.BackgroundColor.ignoresSafeArea()
+        NavigationStack {
+            ZStack {
+                Color.BackgroundColor.ignoresSafeArea()
                 VStack(spacing: 5) {
                     headerSection
                     nameFields
@@ -793,52 +794,62 @@ struct RegistrationView: View {
                     registerButton
                     otherOptionsSection
                     alreadyHaveAccount
+                    NavigationLink(destination: AdminLoginView()) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "shield.fill")
+                                .font(.system(size: 12))
+                            Text("Admin Panel")
+                                .font(.system(size: 12, design: .monospaced))
+                        }
+                        .foregroundColor(Color.AccentColor.opacity(0.4))
+                    }
                 }
                 .padding(.top, 30)
                 .padding(.bottom, 30)
+            }
+            .sheet(isPresented: $showPhoneOTPSheet) {
+                OTPSheetView(authVM: authVM, onVerified: { showPhoneOTPSheet = false })
+            }
+            .sheet(isPresented: $emailOTPVM.showOTPSheet) {
+                EmailOTPSheetView(emailOTPVM: emailOTPVM)
+            }
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) { showError = false }
+            } message: { Text(errorMessage) }
+            
+                .alert("Phone Error", isPresented: Binding(
+                    get: { authVM.errorMessage != nil },
+                    set: { if !$0 {
+                        DispatchQueue.main.async{
+                            authVM.errorMessage = nil
+                        }
+                    } }
+                )) {
+                    Button("OK", role: .cancel) { authVM.errorMessage = nil }
+                } message: { Text(authVM.errorMessage ?? "") }
+            
+                .alert("Email Error", isPresented: Binding(
+                    get: { emailOTPVM.errorMessage != nil },
+                    set: { if !$0 {
+                        DispatchQueue.main.async{
+                            emailOTPVM.errorMessage = nil
+                        }
+                    } }
+                )) {
+                    Button("OK", role: .cancel) { emailOTPVM.errorMessage = nil }
+                } message: { Text(emailOTPVM.errorMessage ?? "") }
+            
+                .alert("Google Error", isPresented: Binding(
+                    get: { googleVM.errorMessage != nil },
+                    set: { if !$0 {
+                        DispatchQueue.main.async{
+                            googleVM.errorMessage = nil
+                        }
+                    } }
+                )) {
+                    Button("OK", role: .cancel) { googleVM.errorMessage = nil }
+                } message: { Text(googleVM.errorMessage ?? "") }
         }
-        .sheet(isPresented: $showPhoneOTPSheet) {
-            OTPSheetView(authVM: authVM, onVerified: { showPhoneOTPSheet = false })
-        }
-        .sheet(isPresented: $emailOTPVM.showOTPSheet) {
-            EmailOTPSheetView(emailOTPVM: emailOTPVM)
-        }
-        .alert("Error", isPresented: $showError) {
-            Button("OK", role: .cancel) { showError = false }
-        } message: { Text(errorMessage) }
-        
-        .alert("Phone Error", isPresented: Binding(
-            get: { authVM.errorMessage != nil },
-            set: { if !$0 {
-                DispatchQueue.main.async{
-                    authVM.errorMessage = nil
-                    }
-                } }
-        )) {
-            Button("OK", role: .cancel) { authVM.errorMessage = nil }
-        } message: { Text(authVM.errorMessage ?? "") }
-        
-        .alert("Email Error", isPresented: Binding(
-            get: { emailOTPVM.errorMessage != nil },
-            set: { if !$0 {
-                DispatchQueue.main.async{
-                    emailOTPVM.errorMessage = nil
-                }
-                } }
-        )) {
-            Button("OK", role: .cancel) { emailOTPVM.errorMessage = nil }
-        } message: { Text(emailOTPVM.errorMessage ?? "") }
-        
-        .alert("Google Error", isPresented: Binding(
-            get: { googleVM.errorMessage != nil },
-            set: { if !$0 {
-                DispatchQueue.main.async{
-                    googleVM.errorMessage = nil
-                }
-                } }
-        )) {
-            Button("OK", role: .cancel) { googleVM.errorMessage = nil }
-        } message: { Text(googleVM.errorMessage ?? "") }
     }
 }
 
