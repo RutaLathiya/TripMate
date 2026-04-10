@@ -23,6 +23,10 @@ struct TripRouteView: View {
     @State private var totalDistance: Double = 0
     @State private var totalTime: TimeInterval = 0
     @State private var showOpenInMaps = false
+    @StateObject private var locationManager = LocationManager()
+    @State private var isFollowingUser = false
+    @State private var showShareSheet = false
+    @State private var shareItems: [Any] = []
 
     // MARK: - Computed
     private var startCoord: CLLocationCoordinate2D {
@@ -54,6 +58,19 @@ struct TripRouteView: View {
         return "\(minutes) min"
     }
 
+    private var distanceToDestination: String {
+        guard let userCoord = locationManager.userLocation else { return "--" }
+        let userLocation = CLLocation(latitude: userCoord.latitude,
+                                      longitude: userCoord.longitude)
+        let destination = CLLocation(latitude: endCoord.latitude,
+                                     longitude: endCoord.longitude)
+        let meters = userLocation.distance(from: destination)
+        let km = meters / 1000
+        return km >= 1
+            ? String(format: "%.1f km", km)
+            : String(format: "%.0f m", meters)
+    }
+    
     // MARK: - Body
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -77,6 +94,21 @@ struct TripRouteView: View {
                     }
                 }
 
+                // ✅ Live user location annotation
+                if let userCoord = locationManager.userLocation {
+                    Annotation("You", coordinate: userCoord) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.blue.opacity(0.2))
+                                .frame(width: 36, height: 36)
+                            Circle()
+                                .fill(Color.blue)
+                                .frame(width: 16, height: 16)
+                                .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                        }
+                    }
+                }
+                
                 // ✅ Stop markers
                 ForEach(0..<stops.count, id: \.self) { i in
                     Annotation("Stop \(i + 1)", coordinate: stops[i].location.coordinate) {
@@ -104,6 +136,9 @@ struct TripRouteView: View {
                 }
             }
             .ignoresSafeArea()
+            .sheet(isPresented: $showShareSheet) {
+                ShareSheet(items: shareItems)
+            }
 
             // ✅ Bottom info card
             VStack(spacing: 0) {
@@ -148,6 +183,32 @@ struct TripRouteView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
                 .padding(.bottom, 36)
+                
+                // Share location button
+                Button {
+                    shareLocation()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "location.fill")
+                            .font(.system(size: 16))
+                        Text("SHARE MY LOCATION")
+                            .font(.system(size: 13, weight: .bold, design: .monospaced))
+                            .kerning(1)
+                    }
+                    .foregroundColor(locationManager.userLocation != nil ? Color.AccentColor : Color.AccentColor.opacity(0.3))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Color.AccentColor.opacity(0.1))
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.AccentColor.opacity(0.3), lineWidth: 1.5)
+                    )
+                }
+                .disabled(locationManager.userLocation == nil)
+                .padding(.horizontal, 20)
+                .padding(.top, 2)
+                
             }
             .background(
                 Color.BackgroundColor
@@ -159,17 +220,59 @@ struct TripRouteView: View {
         .navigationTitle(trip.title ?? "Route")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { fetchRoutes() }
-        .onChange(of: selectedTransport) { fetchRoutes() }
-    }
+        .onChange(of: locationManager.userLocation) { newLocation in
+            guard isFollowingUser, let coord = newLocation else { return }
+            withAnimation(.easeInOut(duration: 0.5)) {
+                cameraPosition = .region(MKCoordinateRegion(
+                    center: coord,
+                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                ))
+            }
+        }    }
 
     // MARK: - Transport Picker
     private var transportPicker: some View {
         HStack(spacing: 10) {
             transportButton(icon: "car.fill", label: "DRIVE", type: .automobile)
             transportButton(icon: "figure.walk", label: "WALK", type: .walking)
+            // ── NEW: live tracking button ──
+                    trackingButton
+        }
+    }
+    
+    private var trackingButton: some View {
+        Button {
+            isFollowingUser.toggle()
+            // immediately jump to user location when enabled
+            if isFollowingUser, let coord = locationManager.userLocation {
+                withAnimation {
+                    cameraPosition = .region(MKCoordinateRegion(
+                        center: coord,
+                        span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                    ))
+                }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: isFollowingUser ? "location.fill" : "location")
+                    .font(.system(size: 14))
+                Text(isFollowingUser ? "LIVE" : "TRACK")
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+            }
+            .foregroundColor(isFollowingUser ? .white : Color.AccentColor)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(isFollowingUser ? Color.blue : Color.blue.opacity(0.1))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+            )
         }
     }
 
+    
+    
     private func transportButton(icon: String, label: String,
                                   type: MKDirectionsTransportType) -> some View {
         let isSelected = selectedTransport == type
@@ -192,18 +295,37 @@ struct TripRouteView: View {
         }
     }
 
+    private func shareLocation() {
+        guard let coord = locationManager.userLocation else { return }
+        
+        let googleMapsLink = "https://maps.google.com/?q=\(coord.latitude),\(coord.longitude)"
+        let appleMapsLink  = "https://maps.apple.com/?ll=\(coord.latitude),\(coord.longitude)"
+        
+        let message = """
+        📍 My current location on TripMate — \(trip.title ?? "our trip"):
+        
+        Apple Maps: \(appleMapsLink)
+        Google Maps: \(googleMapsLink)
+        
+        Coordinates: \(String(format: "%.4f", coord.latitude)), \(String(format: "%.4f", coord.longitude))
+        """
+        
+        shareItems = [message]
+        showShareSheet = true
+    }
+    
     // MARK: - Route Info Card
     private var routeInfoCard: some View {
         HStack(spacing: 0) {
             // Distance
             VStack(spacing: 4) {
-                Image(systemName: "arrow.left.and.right")
+                Image(systemName: "location.north.fill")
                     .font(.system(size: 18))
                     .foregroundColor(Color.AccentColor)
-                Text(distanceString)
+                Text(isFollowingUser ? distanceToDestination : distanceString)
                     .font(.system(size: 16, weight: .bold, design: .monospaced))
                     .foregroundColor(Color.AccentColor)
-                Text("Distance")
+                Text(isFollowingUser ? "Remaining" : "Total Dist")
                     .font(.system(size: 10, design: .monospaced))
                     .foregroundColor(Color.AccentColor.opacity(0.5))
             }
@@ -321,6 +443,16 @@ struct TripRouteView: View {
 
         MKMapItem.openMaps(with: mapItems, launchOptions: options)
     }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 #Preview {
