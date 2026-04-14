@@ -56,6 +56,7 @@ struct LogIn: View {
     @EnvironmentObject var SessionVM: SessionViewModel
     @StateObject private var viewModel = LogInViewModel()
     @State private var showError = false
+    @State private var showPassword = false
     
     var body: some View {
             ZStack{
@@ -94,21 +95,39 @@ struct LogIn: View {
                            .padding(.horizontal,30)
                     VStack(alignment: .leading
                            , spacing: 8){
-                        Text("Password")
-                            .font(.headline)
-                            .foregroundColor(.gray)
-                        
-                        SecureField("Enter your Password", text: $viewModel.password)
+                                Text("Password")
+                                    .font(.headline)
+                                    .foregroundColor(.gray)
+                        HStack {
+                            Group {
+                                if showPassword {
+                                    TextField("Enter your Password", text: $viewModel.password)
+                                } else {
+                                    SecureField("Enter your Password", text:
+                                                    $viewModel.password)
+                                }
+                            }
+
+                            Button {
+                                showPassword.toggle()
+                            } label: {
+                                Image(systemName: showPassword ? "eye.slash" : "eye")
+                                    .foregroundColor(Color.AccentColor.opacity(0.7))
+                                    
+                            }
+                            
+                                    
+                        }
                             .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
                             .padding()
+                            .textInputAutocapitalization(.never)
                             .background(Color.ContainerColor)
                             .cornerRadius(20)
                             .shadow(color: .gray.opacity(0.2), radius: 5)
                             .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
-                                )
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(colorScheme == .dark ? Color.BorderColor : Color.clear, lineWidth: 5)
+                        )
                     }
                            .padding(.horizontal,30)
                     

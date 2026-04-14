@@ -102,6 +102,7 @@ struct ProfileView: View {
     @State private var items = ["settings", "logout", "my profile"]
     @State private var showLogoutAlert = false
     @State private var showEditProfile = false
+    @State private var showSettings = false
     @EnvironmentObject var SessionVM: SessionViewModel
     @EnvironmentObject var profileImageManager: ProfileImageManager
     @Environment(\.managedObjectContext) private var context
@@ -133,6 +134,8 @@ struct ProfileView: View {
                                             showLogoutAlert = true
                                         } else if item == "my profile" {
                                             showEditProfile = true
+                                        } else if item == "Settings" {
+                                            showSettings = true
                                         }
                                     }
                             }
@@ -146,7 +149,9 @@ struct ProfileView: View {
             //            .navigationTitle("Profile")
             //            .navigationBarTitleDisplayMode(.large)
             
-            
+            .navigationDestination(isPresented: $showSettings, destination: {
+                SettingsView()
+            })
             .navigationDestination(isPresented: $showEditProfile)
             {
                  EditProfileView()

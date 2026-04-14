@@ -129,12 +129,16 @@ struct AdminLoginView: View {
             }
             .padding(.bottom, 8)
 
-            Text("Default: Admin / admin123")
-                .font(.system(size: 10, design: .monospaced))
-                .foregroundColor(Color.AccentColor.opacity(0.3))
+//            Text("Default: Admin / admin123")
+//                .font(.system(size: 10, design: .monospaced))
+//                .foregroundColor(Color.AccentColor.opacity(0.3))
 
             Spacer()
         }
         .padding(.horizontal, 28)
     }
+}
+
+#Preview {
+    AdminLoginView()
 }
