@@ -181,8 +181,8 @@ struct TripRouteView: View {
                     .cornerRadius(16)
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 12)
-                .padding(.bottom, 36)
+                .padding(.top, 15)
+                .padding(.bottom, 15)
                 
                 // Share location button
                 Button {
@@ -207,7 +207,7 @@ struct TripRouteView: View {
                 }
                 .disabled(locationManager.userLocation == nil)
                 .padding(.horizontal, 20)
-                .padding(.top, 2)
+                .padding(.bottom, 60)
                 
             }
             .background(
