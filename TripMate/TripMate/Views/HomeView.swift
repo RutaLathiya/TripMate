@@ -360,7 +360,6 @@ struct HomeView: View {
             tabBarButton(index: 0, icon: "house.fill", label: "Home")
             tabBarButton(index: 1, icon: "map", label: "Map")
             tabBarButton(index: 2, icon: "plus", label: "Create Trip")
-           // tabBarButton(index: 3, icon: "dollarsign", label: "Pay Now")
             profileTabButton  // special button for profile
         }
         .padding(.horizontal, 16)
@@ -474,18 +473,18 @@ struct HomeView: View {
                                 Circle()
                                     .stroke(
                                         isActive ? Color.AccentColor : Color.AccentColor.opacity(0.3),
-                                        lineWidth: isActive ? 2 : 1
+                                        lineWidth: isActive ? 1 : 0.5
                                     )
                             )
                     } else if let avatar = profileImageManager.profileAvatar {
                         Text(avatar)
-                            .font(.system(size: 20))
-                            .frame(width: 24, height: 24)
+                            .font(.system(size: 24))
+                            .frame(width: 28, height: 28)
                             .overlay(
                                 Circle()
                                     .stroke(
                                         isActive ? Color.AccentColor : Color.AccentColor.opacity(0.3),
-                                        lineWidth: isActive ? 2 : 1
+                                        lineWidth: isActive ? 1 : 0.5
                                     )
                             )
                     } else {
@@ -496,13 +495,13 @@ struct HomeView: View {
                 }
                 .frame(width: 28, height: 28)
                 .scaleEffect(isActive ? 1.1 : 1.0)
-                .animation(.spring(response: 0.3), value: isActive)
-                .padding(.top, 3)
-                
+               // .animation(.spring(response: 0.3), value: isActive)
+                //.padding(.top, 3)
+                //Spacer()
                 Text("Profile")
                     .font(.system(size: 8, weight: .medium, design: .monospaced))
                     .foregroundColor(isActive ? Color.AccentColor : Color.AccentColor.opacity(0.4))
-                    .padding(.bottom, 2)
+                    .padding(.bottom, 3)
                 
                 // active indicator dot
 //                Circle()

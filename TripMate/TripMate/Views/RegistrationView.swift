@@ -973,6 +973,47 @@ private extension RegistrationView {
     // MARK: Register Button
     var registerButton: some View {
         Button {
+            if vm.firstName.isEmpty {
+                errorMessage = "First name is required"
+                showError = true
+                return
+            }
+
+            if vm.lastName.isEmpty {
+                errorMessage = "Last name is required"
+                showError = true
+                return
+            }
+
+            if vm.email.isEmpty {
+                errorMessage = "Email is required"
+                showError = true
+                return
+            }
+
+            if vm.phoneNo.isEmpty {
+                errorMessage = "Phone number is required"
+                showError = true
+                return
+            }
+
+            if vm.password.isEmpty {
+                errorMessage = "Password is required"
+                showError = true
+                return
+            }
+
+            if vm.confirmPassword.isEmpty {
+                errorMessage = "Please confirm your password"
+                showError = true
+                return
+            }
+
+            if vm.password != vm.confirmPassword {
+                errorMessage = "Passwords do not match"
+                showError = true
+                return
+            }
             guard emailOTPVM.isEmailVerified || googleVM.isSignedIn else {
                 errorMessage = "Please verify your email first."
                 showError = true

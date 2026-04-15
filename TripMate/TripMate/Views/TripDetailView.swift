@@ -108,7 +108,7 @@ struct TripDetailView: View {
     
     @EnvironmentObject var SessionVM: SessionViewModel
     
-    private let members = ["You", "Rahul", "Priya", "Arun", "mahek", "krishna"]
+    //private let members = ["You", "Rahul", "Priya", "Arun", "mahek", "krishna"]
     
     // sample trip data — replace with CoreData later
     private var tripName: String { trip.title ?? "Trip" }
@@ -126,16 +126,54 @@ struct TripDetailView: View {
        private var isStarted: Bool { trip.startDate != nil }
        private var isEnded: Bool   { trip.endDate != nil }
        
-    private var tripMemberNames: [String] {
+//    private var tripMemberNames: [String] {
+//        let memberRepo = TripMemberRepository()
+//        let members = (try? memberRepo.fetchMembers(for: trip.objectID)) ?? []
+//        var names = members.compactMap { $0.memberName }
+//        // Add current user
+//        let userName = SessionVM.currentUser
+//        if !userName.isEmpty && !names.contains(userName) {
+//            names.insert(userName, at: 0)
+//        }
+//        return names.isEmpty ? ["You"] : names
+//    }
+    
+
+    private struct MemberDisplay {
+        let name: String
+        let profilePicData: Data?
+    }
+
+    private var tripMembers: [MemberDisplay] {
         let memberRepo = TripMemberRepository()
         let members = (try? memberRepo.fetchMembers(for: trip.objectID)) ?? []
-        var names = members.compactMap { $0.memberName }
-        // Add current user
+        
+        var result: [MemberDisplay] = []
+        
+        // Add current logged-in user first
         let userName = SessionVM.currentUser
-        if !userName.isEmpty && !names.contains(userName) {
-            names.insert(userName, at: 0)
+        if !userName.isEmpty {
+            // Fetch current user's profile pic from CoreData by username
+            let fetchRequest: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "name == %@", userName)
+            let currentUser = try? PersistenceController.shared.context.fetch(fetchRequest).first
+            result.append(MemberDisplay(name: userName, profilePicData: currentUser?.profilePic))
         }
-        return names.isEmpty ? ["You"] : names
+        
+        // Add all trip members added by the trip creator
+        for member in members {
+            guard let name = member.memberName else { continue }
+            
+            // Try to find a matching UserEntity by name or phone to get their profile pic
+            let fetchRequest: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "name == %@ OR phoneNo == %@",
+                                                  name, member.phoneNo ?? "")
+            let matchedUser = try? PersistenceController.shared.context.fetch(fetchRequest).first
+            
+            result.append(MemberDisplay(name: name, profilePicData: matchedUser?.profilePic))
+        }
+        
+        return result.isEmpty ? [MemberDisplay(name: "You", profilePicData: nil)] : result
     }
     
     init(trip: TripEntity) {
@@ -302,26 +340,62 @@ struct TripDetailView: View {
                         .padding(.top, -40)
                 
                 // Members avatars
-                HStack(spacing: -8) {
-                    ForEach(members.prefix(4), id: \.self) { member in
-                        ZStack {
-                            Circle()
-                                .fill(Color.AccentColor)
+//                HStack(spacing: -8) {
+//                    ForEach(members.prefix(4), id: \.self) { member in
+//                        ZStack {
+//                            Circle()
+//                                .fill(Color.AccentColor)
+//                                .frame(width: 28, height: 28)
+//                                .overlay(Circle().stroke(Color.BackgroundColor, lineWidth: 2))
+//                            Text(String(member.prefix(1)).uppercased())
+//                                .font(.system(size: 11, weight: .bold))
+//                                .foregroundColor(.white)
+//                        }
+//                    }
+//                    Text("+\(members.count) members")
+//                        .font(.system(size: 10, design: .monospaced))
+//                        .foregroundColor(Color.AccentColor.opacity(0.6))
+//                        .padding(.leading, 14)
+//                }
+//                .frame(maxWidth: .infinity, alignment: .leading)
+//            .padding(.horizontal, 15)
+//            .padding(.top, -30)
+//
+            // AFTER (replace with this):
+            HStack(spacing: -8) {
+                ForEach(tripMembers.prefix(4), id: \.name) { member in
+                    ZStack {
+                        Circle()
+                            .fill(Color.AccentColor)
+                            .frame(width: 28, height: 28)
+                            .overlay(Circle().stroke(Color.BackgroundColor, lineWidth: 2))
+                        
+                        if let data = member.profilePicData,
+                           let uiImage = UIImage(data: data) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
                                 .frame(width: 28, height: 28)
-                                .overlay(Circle().stroke(Color.BackgroundColor, lineWidth: 2))
-                            Text(String(member.prefix(1)).uppercased())
+                                .clipShape(Circle())
+                        } else {
+                            Text(String(member.name.prefix(1)).uppercased())
                                 .font(.system(size: 11, weight: .bold))
                                 .foregroundColor(.white)
                         }
                     }
-                    Text("+\(members.count) members")
+                }
+                
+                if tripMembers.count > 1 {
+                    Text("+\(tripMembers.count) member\(tripMembers.count == 1 ? "" : "s")")
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundColor(Color.AccentColor.opacity(0.6))
                         .padding(.leading, 14)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 15)
-            .padding(.top, -30)
+            }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 15)
+                        .padding(.top, -25)
+
             
             Divider()
                 .opacity(0.9)
@@ -352,7 +426,8 @@ struct TripDetailView: View {
             NavigationLink(destination: ExpenseView(
                 store: expenseStore,
                 tripName: tripName,
-                tripMembers: tripMemberNames, paymentStore: PaymentStore()
+                tripMembers: tripMembers.map { $0.name }, 
+                paymentStore: PaymentStore()
             )) {
                 featureCard(
                     icon: "indianrupeesign.circle.fill",
