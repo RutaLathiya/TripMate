@@ -26,7 +26,7 @@ class SessionViewModel: ObservableObject{
 //           }
 //       }
     
-    @Published var currentUserName: String? = nil
+    //@Published var currentUserName: String? = nil
     
     @Published var currentUser: String = ""
         //func login() {

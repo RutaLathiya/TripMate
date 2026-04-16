@@ -18,6 +18,7 @@ struct MapPickerView: View {
     var onSelect: (TripModelsView) -> Void
     var onClose: () -> Void
     
+    @FocusState private var isSearchFocused: Bool
     @State private var selected: TripModelsView? = nil
     @State private var cameraPosition: MapCameraPosition = .region(
         MKCoordinateRegion(
@@ -57,6 +58,11 @@ struct MapPickerView: View {
             suggestionsList
             actionButtons
         }
+        .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    isSearchFocused = true
+                }
+            }
         .background(
             //Color(red: 0.059, green: 0.098, blue: 0.137)
             Color.BackgroundColor
@@ -168,6 +174,7 @@ struct MapPickerView: View {
                 .font(.system(size: 14, design: .monospaced))
                 .foregroundColor(.AccentColor)
                 .autocorrectionDisabled()
+                .focused($isSearchFocused)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)

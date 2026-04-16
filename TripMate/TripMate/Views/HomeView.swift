@@ -476,23 +476,36 @@ struct HomeView: View {
                                         lineWidth: isActive ? 1 : 0.5
                                     )
                             )
-                    } else if let avatar = profileImageManager.profileAvatar {
-                        Text(avatar)
-                            .font(.system(size: 24))
-                            .frame(width: 28, height: 28)
+                    }
+                    //                    else if let _ = profileImageManager.profileAvatar {
+                    ////                        Text(avatar)
+                    ////                            .font(.system(size: 24))
+                    ////                            .frame(width: 28, height: 28)
+                    //                        AvatarView(seed: SessionVM.currentUserName ?? "", size: 28)
+                    //                            .overlay(
+                    //                                Circle()
+                    //                                    .stroke(
+                    //                                        isActive ? Color.AccentColor : Color.AccentColor.opacity(0.3),
+                    //                                        lineWidth: isActive ? 1 : 0.5
+                    //                                    )
+                    //                            )
+                    //                    }
+                    else  {
+                        AvatarView(seed: SessionVM.currentUser, size: 28)
                             .overlay(
-                                Circle()
-                                    .stroke(
-                                        isActive ? Color.AccentColor : Color.AccentColor.opacity(0.3),
-                                        lineWidth: isActive ? 1 : 0.5
-                                    )
+                                Circle().stroke(
+                                    isActive ? Color.AccentColor : Color.AccentColor.opacity(0.3),
+                                    lineWidth: isActive ? 1 : 0.5
+                                )
                             )
-                    } else {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 24, weight: isActive ? .bold : .regular))
-                            .foregroundColor(isActive ? Color.AccentColor : Color.AccentColor.opacity(0.4))
                     }
                 }
+//                    else {
+//                        Image(systemName: "person.circle.fill")
+//                            .font(.system(size: 24, weight: isActive ? .bold : .regular))
+//                            .foregroundColor(isActive ? Color.AccentColor : Color.AccentColor.opacity(0.4))
+//                    }
+                
                 .frame(width: 28, height: 28)
                 .scaleEffect(isActive ? 1.1 : 1.0)
                // .animation(.spring(response: 0.3), value: isActive)

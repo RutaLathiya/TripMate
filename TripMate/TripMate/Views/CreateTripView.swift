@@ -999,8 +999,8 @@ struct CreateTripView: View {
     @State private var endDate: Date   = Date().addingTimeInterval(86400)
     @State private var hasSaved = false
     @FocusState private var packFieldFocused: Bool
+    @FocusState private var isTitleFocused: Bool
 
-    
     @StateObject private var weatherService = WeatherService()
     @StateObject private var friendsVM = AddFriendsViewModel()
     @StateObject private var tripVM = TripViewModel()
@@ -1137,6 +1137,7 @@ struct CreateTripView: View {
                     .foregroundColor(Color.AccentColor)
                     .kerning(1.5)
                     .autocorrectionDisabled()
+                    .focused($isTitleFocused)
 
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
@@ -1207,13 +1208,21 @@ struct CreateTripView: View {
             
             locationCard(label: "FROM", location: startLocation,
                          iconName: "circle.fill", iconColor: Color(red: 0.92, green: 0.75, blue: 0.15),
-                         placeholder: "Set Starting Point") { activeModal = "start" }
+                         placeholder: "Set Starting Point")
+            {
+                isTitleFocused = false
+                activeModal = "start"
+            }
             
             routeDivider
             
             locationCard(label: "TO", location: endLocation,
                          iconName: "circle.fill", iconColor: Color(red: 0.44, green: 0.56, blue: 0.40),
-                         placeholder: "Set Destination") { activeModal = "end" }
+                         placeholder: "Set Destination")
+            {
+                isTitleFocused = false
+                activeModal = "end"
+            }
             
 //            DatePicker("Start Date",
 //                       selection: $startDate,
@@ -1468,6 +1477,7 @@ struct CreateTripView: View {
     private var stopsSection: some View {
         VStack(spacing: 12) {
             Button {
+                isTitleFocused = false
                 activeModal = "stop"
             } label: {
                 HStack(spacing: 8) {

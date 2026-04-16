@@ -283,14 +283,14 @@ struct EditProfileView: View {
     
     // Profile pic
     @State private var selectedImage: UIImage? = nil
-    @State private var selectedAvatar: String? = nil
+    //@State private var selectedAvatar: String? = nil
     @State private var photosItem: PhotosPickerItem? = nil
     @State private var showPicOptions = false
-    @State private var showAvatarPicker = false
+//    @State private var showAvatarPicker = false
     @State private var showCamera = false
     @State private var showGallery = false
 
-    private let avatars = ["😀","😎","🧑‍🚀","🧙","🦊","🐯","🦁","🐻","🐼","🦋","🌊","🏔️"]
+   // private let avatars = ["😀","😎","🧑‍🚀","🧙","🦊","🐯","🦁","🐻","🐼","🦋","🌊","🏔️"]
 
     var body: some View {
         ZStack {
@@ -307,18 +307,30 @@ struct EditProfileView: View {
                                 .scaledToFill()
                                 .frame(width: 100, height: 100)
                                 .clipShape(Circle())
-                        } else if let avatar = selectedAvatar {
-                            Text(avatar)
-                                .font(.system(size: 60))
-                                .frame(width: 100, height: 100)
-                                .background(Color.AccentColor.opacity(0.1))
-                                .clipShape(Circle())
-                        } else {
-                            Image(systemName: "person.circle.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 100, height: 100)
-                                .foregroundColor(Color.AccentColor)
+                        }
+//                            else if let avatar = selectedAvatar {
+//                            Text(avatar)
+//                                .font(.system(size: 60))
+//                                .frame(width: 100, height: 100)
+//                                .background(Color.AccentColor.opacity(0.1))
+//                                .clipShape(Circle())
+//                        else  if let image = selectedImage {
+//                            // user picked a real photo from camera/gallery
+//                            Image(uiImage: image)
+//                                .resizable()
+//                                .scaledToFill()
+//                                .frame(width: 100, height: 100)
+//                                .clipShape(Circle())
+//                        } else {
+//                            Image(systemName: "person.circle.fill")
+//                                .resizable()
+//                                .scaledToFit()
+//                                .frame(width: 100, height: 100)
+//                                .foregroundColor(Color.AccentColor)
+//                        }
+                        else {
+                            AvatarView(seed: SessionVM.currentUser.isEmpty ? firstName : SessionVM.currentUser, size: 100)
+
                         }
                     }
                     .allowsHitTesting(false)
@@ -379,16 +391,17 @@ struct EditProfileView: View {
         }
         .onAppear { loadProfile() }  // 👈 load existing data on open
         .confirmationDialog("Change Profile Picture", isPresented: $showPicOptions, titleVisibility: .visible) {
-            Button("Choose Avatar") { showAvatarPicker = true }
+            //Button("Choose Avatar") { showAvatarPicker = true }
             Button("Camera") { showCamera = true }
             Button("Gallery") { showGallery = true }
             Button("Remove Photo", role: .destructive) {
                 selectedImage = nil
-                selectedAvatar = nil
+              //  selectedAvatar = nil
+                deleteProfilePhoto()
             }
             Button("Cancel", role: .cancel) { }
         }
-        .sheet(isPresented: $showAvatarPicker) { avatarPickerSheet }
+       // .sheet(isPresented: $showAvatarPicker) { avatarPickerSheet }
         .fullScreenCover(isPresented: $showCamera) {
             CameraPickerView(image: $selectedImage).ignoresSafeArea()
         }
@@ -398,7 +411,7 @@ struct EditProfileView: View {
                 if let data = try? await newItem?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     selectedImage = uiImage
-                    selectedAvatar = nil
+                   // selectedAvatar = nil
                 }
             }
         }
@@ -419,16 +432,20 @@ struct EditProfileView: View {
             phone = user.phoneNo ?? ""
             
             // Load profile pic
+//            if let picData = user.profilePic {
+//                if let avatarString = String(data: picData, encoding: .utf8),
+//                               avatarString.count <= 4 {  // emojis are short
+//                                selectedAvatar = avatarString  // 👈 restore emoji
+//                                selectedImage = nil
+//                            } else {
+//                                // Otherwise load as image
+//                                selectedImage = UIImage(data: picData)
+//                                selectedAvatar = nil
+//                            }
+//            }
+            
             if let picData = user.profilePic {
-                if let avatarString = String(data: picData, encoding: .utf8),
-                               avatarString.count <= 4 {  // emojis are short
-                                selectedAvatar = avatarString  // 👈 restore emoji
-                                selectedImage = nil
-                            } else {
-                                // Otherwise load as image
-                                selectedImage = UIImage(data: picData)
-                                selectedAvatar = nil
-                            }
+                selectedImage = UIImage(data: picData)
             }
         }
     }
@@ -452,14 +469,18 @@ struct EditProfileView: View {
             if let image = selectedImage {
                 // compress to save space
                 user.profilePic = image.jpegData(compressionQuality: 0.7)
-            } else if selectedAvatar == nil {
-                user.profilePic = nil  // removed
+            } //else if selectedAvatar == nil {
+               // user.profilePic = nil  // removed
+           // }
+            
+            else if selectedImage == nil {
+                user.profilePic = nil
             }
             
             // Save avatar as name prefix if selected
-            if let avatar = selectedAvatar {
-                user.profilePic = avatar.data(using: .utf8)
-            }
+//            if let avatar = selectedAvatar {
+//                user.profilePic = avatar.data(using: .utf8)
+//            }
             
             do {
                 try context.save()
@@ -473,50 +494,72 @@ struct EditProfileView: View {
         }
     }
     
-    // MARK: - Avatar Sheet
-    private var avatarPickerSheet: some View {
-        ZStack {
-            Color.BackgroundColor.ignoresSafeArea()
-            VStack(spacing: 20) {
-                Text("CHOOSE AVATAR")
-                    .font(.system(size: 13, weight: .bold, design: .monospaced))
-                    .foregroundColor(Color.AccentColor)
-                    .kerning(2)
-                    .padding(.top, 20)
+    private func deleteProfilePhoto() {
+        guard let uid = SessionVM.currentUserUID else { return }
+        
+        let request: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "uid == %@", uid as CVarArg)
+        
+        if let user = try? context.fetch(request).first {
+            user.profilePic = nil  // 💥 remove from DB
+            
+            do {
+                try context.save()
                 
-                LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 4), spacing: 16) {
-                    ForEach(avatars, id: \.self) { avatar in
-                        Button {
-                            selectedAvatar = avatar
-                            selectedImage = nil
-                            showAvatarPicker = false
-                        } label: {
-                            Text(avatar)
-                                .font(.system(size: 40))
-                                .frame(width: 70, height: 70)
-                                .background(
-                                    selectedAvatar == avatar
-                                    ? Color.AccentColor.opacity(0.2)
-                                    : Color.AccentColor.opacity(0.07)
-                                )
-                                .cornerRadius(14)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .stroke(
-                                            selectedAvatar == avatar
-                                            ? Color.AccentColor : Color.clear,
-                                            lineWidth: 2
-                                        )
-                                )
-                        }
-                    }
-                }
-                .padding(.horizontal, 20)
-                Spacer()
+                // refresh UI everywhere
+                profileImageManager.load(uid: uid, context: context)
+                
+                print("✅ Profile photo removed")
+            } catch {
+                print("❌ Failed to remove photo:", error)
             }
         }
-        .presentationDetents([.medium, .large])
     }
+    
+    // MARK: - Avatar Sheet
+//    private var avatarPickerSheet: some View {
+//        ZStack {
+//            Color.BackgroundColor.ignoresSafeArea()
+//            VStack(spacing: 20) {
+//                Text("CHOOSE AVATAR")
+//                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+//                    .foregroundColor(Color.AccentColor)
+//                    .kerning(2)
+//                    .padding(.top, 20)
+//                
+//                LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 4), spacing: 16) {
+//                    ForEach(avatars, id: \.self) { avatar in
+//                        Button {
+//                            selectedAvatar = avatar
+//                            selectedImage = nil
+//                            showAvatarPicker = false
+//                        } label: {
+//                            Text(avatar)
+//                                .font(.system(size: 40))
+//                                .frame(width: 70, height: 70)
+//                                .background(
+//                                    selectedAvatar == avatar
+//                                    ? Color.AccentColor.opacity(0.2)
+//                                    : Color.AccentColor.opacity(0.07)
+//                                )
+//                                .cornerRadius(14)
+//                                .overlay(
+//                                    RoundedRectangle(cornerRadius: 14)
+//                                        .stroke(
+//                                            selectedAvatar == avatar
+//                                            ? Color.AccentColor : Color.clear,
+//                                            lineWidth: 2
+//                                        )
+//                                )
+//                        }
+//                    }
+//                }
+//                .padding(.horizontal, 20)
+//                Spacer()
+//            }
+//        }
+//        .presentationDetents([.medium, .large])
+//    }
     
     // MARK: - Field Builder
     private func editField(icon: String, placeholder: String, text: Binding<String>) -> some View {

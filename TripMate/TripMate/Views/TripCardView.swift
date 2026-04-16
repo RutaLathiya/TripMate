@@ -32,19 +32,31 @@ struct TripCardView: View {
                     endPoint: .bottomTrailing
                 )
                 .frame(height: 90)
-
+                
                 Image(systemName: "car.2")
                     .font(.system(size: 36))
                     .foregroundColor(.white.opacity(0.15))
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .padding(.trailing, 20)
-
+                
                 Text(trip.title ?? "Untitled")
                     .font(.system(size: 18, weight: .heavy, design: .rounded))
                     .foregroundColor(.white)
                     .padding(12)
+                    .padding(.bottom, 30)
+                
+                Spacer()
+                
+                
+                HStack {
+                    MemberAvatarStack(members: trip.membersArray,
+                                      size: 28,
+                                      maxVisible: 3
+                    )
+                    .padding(12)
+                    .padding(.top, 10)
+                }
             }
-
             // Details
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 6) {

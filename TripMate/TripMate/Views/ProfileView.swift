@@ -116,11 +116,16 @@ struct ProfileView: View {
                 VStack(spacing: 25) {
                     
                     // Profile Image
-                    Image(systemName: "person.circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 100, height: 100)
-                        .foregroundColor(.accentColor)
+//                    Image(systemName: "person.circle.fill")
+//                        .resizable()
+//                        .scaledToFit()
+//                        .frame(width: 100, height: 100)
+//                        .foregroundColor(.accentColor)
+//                        .padding(.top, 30)
+//                    Text("Seed: \(SessionVM.currentUser)")
+//                        .font(.caption)
+//                        .foregroundColor(.red)
+                    AvatarView(seed: SessionVM.currentUser, size: 100)
                         .padding(.top, 30)
                     
                     // Profile Options
@@ -165,6 +170,8 @@ struct ProfileView: View {
             
             .onAppear {
                 showLogoutAlert = false
+                print("🟢 currentUser: '\(SessionVM.currentUser)'")
+                print("🟢 URL: \(String(describing: AvatarHelper.url(seed: SessionVM.currentUser)))")
             }
             .alert("Confirm Logout", isPresented: $showLogoutAlert) {
                 

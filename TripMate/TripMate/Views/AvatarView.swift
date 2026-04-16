@@ -12,6 +12,9 @@ struct AvatarView: View {
     var size: CGFloat = 40
 
     var body: some View {
+        let url = AvatarHelper.url(seed: seed)
+        let _ = print("Avatar URL:", url?.absoluteString ?? "nil")
+        
         AsyncImage(url: AvatarHelper.url(seed: seed)) { phase in
             switch phase {
             case .success(let image):
@@ -19,8 +22,9 @@ struct AvatarView: View {
                     .resizable()
                     .scaledToFill()
 
-            case .failure(_):
+            case .failure(let error):
                 // Network failed — show initials circle
+                 let _ = print("❌ Avatar failed: \(error.localizedDescription) | seed: \(seed)")
                 fallbackView
 
             case .empty:
@@ -31,7 +35,7 @@ struct AvatarView: View {
                         ProgressView()
                             .scaleEffect(0.6)
                     )
-
+            
             @unknown default:
                 fallbackView
             }

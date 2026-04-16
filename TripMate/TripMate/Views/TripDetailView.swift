@@ -364,6 +364,14 @@ struct TripDetailView: View {
             // AFTER (replace with this):
             HStack(spacing: -8) {
                 ForEach(tripMembers.prefix(4), id: \.name) { member in
+                // Inside your TripDetailView
+//                ForEach(trip.membersArray, id: \.objectID) { member in
+//                    TripMemberRowView(
+//                        member: member,
+//                        isOwner: false
+//                    )
+                
+                
                     ZStack {
                         Circle()
                             .fill(Color.AccentColor)
@@ -385,8 +393,8 @@ struct TripDetailView: View {
                     }
                 }
                 
-                if tripMembers.count > 1 {
-                    Text("+\(tripMembers.count) member\(tripMembers.count == 1 ? "" : "s")")
+                if tripMembers.count > 4 {
+                    Text("+\(tripMembers.count - 4) member\(tripMembers.count - 4 == 1 ? "" : "s")")
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundColor(Color.AccentColor.opacity(0.6))
                         .padding(.leading, 14)

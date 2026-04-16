@@ -1059,13 +1059,15 @@ private extension RegistrationView {
                 Task { await googleVM.signIn(viewModel: vm) }
             } label: {
                 HStack(spacing: 10) {
-                    Image(systemName: "globe").font(.system(size: 18)).foregroundColor(.brown)
+                    Image(systemName: "globe")
+                        .font(.system(size: 18))
+                        .foregroundColor(.brown)
                     Text(googleVM.isSignedIn ? "✅ Signed in with Google" : "Sign Up with Google")
                         .font(.headline)
                         .foregroundColor(googleVM.isSignedIn ? .green : .black)
                 }
                 .frame(maxWidth: .infinity).frame(height: 55)
-                .background(Color.accentColor.opacity(0.3))
+                .background(Color.AccentColor.opacity(0.3))
                 .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.brown, lineWidth: 5))
                 .shadow(color: .brown.opacity(0.3), radius: 10)
             }
@@ -1073,14 +1075,22 @@ private extension RegistrationView {
             .padding(.top, 10)
             .disabled(googleVM.isSignedIn)
 
-            Button(action: {}) {
-                Text("Sign Up with Apple")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity).frame(height: 55)
-                    .background(Color.black)
-                    .cornerRadius(20)
+            Button{ //action: do {}
+                
+                } label: {
+                HStack (spacing: 10){
+                    Image(systemName: "apple.logo")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                    Text("Sign Up with Apple")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                }
+                .frame(maxWidth: .infinity).frame(height: 55)
+                .background(Color.black)
+                .cornerRadius(20)
             }
+                   
             .disabled(true)
         }
         .padding(.horizontal, 30)
