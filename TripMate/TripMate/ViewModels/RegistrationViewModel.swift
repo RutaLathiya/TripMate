@@ -9,6 +9,16 @@ import SwiftUI
 import Combine
 import CoreData
 import FirebaseAuth
+import CryptoKit
+
+struct PasswordHelper {
+    
+    static func hash(_ password: String) -> String {
+        let data = Data(password.utf8)
+        let digest = SHA256.hash(data: data)
+        return digest.map { String(format: "%02x", $0) }.joined()
+    }
+}
 
 class RegistrationViewModel: ObservableObject {
     
@@ -63,7 +73,7 @@ class RegistrationViewModel: ObservableObject {
         user.setValue(UUID(), forKey: "uid")
         user.setValue(name, forKey: "name")
         user.setValue(email, forKey: "email")
-        user.setValue(password, forKey: "password")
+        user.setValue(PasswordHelper.hash(password), forKey: "password")
         user.setValue(phoneNo, forKey: "phoneNo")
         user.setValue(Date(), forKey: "created_at")
         user.setValue("Active", forKey: "status")

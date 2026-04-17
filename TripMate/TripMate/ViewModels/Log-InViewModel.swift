@@ -70,8 +70,14 @@ class LogInViewModel: ObservableObject {
         do {
             let results = try context.fetch(fetchRequest)
             if let user = results.first {                    // 👈 already UserEntity, no cast needed
-                let storedPassword = user.password
-                if storedPassword == password {
+                let storedPassword = user.password ?? ""
+                let inputHash = PasswordHelper.hash(password)
+                if storedPassword == inputHash || storedPassword == password {
+                    if storedPassword == password {
+                        user.password = inputHash
+                        try? context.save()
+                        print("🔄 Password upgraded to hashed")
+                    }
                     if user.status == "Inactive" {
                         errorMessage = "Your account has been deactivated. Please contact admin."
                         print("❌ Account inactive")

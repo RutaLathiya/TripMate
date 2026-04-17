@@ -99,6 +99,7 @@
         <attribute name="profilePic" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="status" optional="YES" attributeType="String"/>
         <attribute name="uid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="members" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TripMemberEntity" inverseName="user" inverseEntity="TripMemberEntity"/>
         <relationship name="trips" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="TripEntity" inverseName="user" inverseEntity="TripEntity"/>
     </entity>

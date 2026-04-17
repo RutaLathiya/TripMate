@@ -6,17 +6,20 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct SettingsView: View {
-    
+
+    let userID: NSManagedObjectID   // 👈 direct injection
     @State private var showChangePassword = false
-    
+
     var body: some View {
         ZStack {
             Color.BackgroundColor
                 .ignoresSafeArea()
+
             VStack(spacing: 20) {
-                
+
                 Button {
                     showChangePassword = true
                 } label: {
@@ -30,18 +33,19 @@ struct SettingsView: View {
                     .background(Color.AccentColor.opacity(0.2))
                     .cornerRadius(12)
                 }
-                
+
                 Spacer()
             }
             .padding()
-           // .navigationTitle("Settings")
             .navigationDestination(isPresented: $showChangePassword) {
-                ChangePasswordView()
+                ChangePasswordView(userID: userID)
             }
         }
     }
 }
 
-#Preview {
-    SettingsView()
-}
+//#Preview {
+//    SettingsView(userID: userID)
+//        .environment(\.managedObjectContext,
+//            PersistenceController.shared.container.viewContext)
+//}

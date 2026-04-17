@@ -350,6 +350,7 @@ struct HomeView: View {
         .onAppear {
             if let uid = SessionVM.currentUserUID {
                 profileImageManager.load(uid: uid, context: context)
+                profileImageManager.loadAvatar(seed: SessionVM.currentUser)
             }
         }
     }
@@ -470,36 +471,31 @@ struct HomeView: View {
                             .frame(width: 28, height: 28)
                             .clipShape(Circle())
                             .overlay(
-                                Circle()
-                                    .stroke(
-                                        isActive ? Color.AccentColor : Color.AccentColor.opacity(0.3),
-                                        lineWidth: isActive ? 1 : 0.5
-                                    )
+                                Circle().stroke(
+                                    isActive ? Color.AccentColor : Color.AccentColor.opacity(0.3),
+                                    lineWidth: isActive ? 1 : 0.5
+                                )
                             )
-                    }
-                    //                    else if let _ = profileImageManager.profileAvatar {
-                    ////                        Text(avatar)
-                    ////                            .font(.system(size: 24))
-                    ////                            .frame(width: 28, height: 28)
-                    //                        AvatarView(seed: SessionVM.currentUserName ?? "", size: 28)
-                    //                            .overlay(
-                    //                                Circle()
-                    //                                    .stroke(
-                    //                                        isActive ? Color.AccentColor : Color.AccentColor.opacity(0.3),
-                    //                                        lineWidth: isActive ? 1 : 0.5
-                    //                                    )
-                    //                            )
-                    //                    }
-                    else  {
-                        AvatarView(seed: SessionVM.currentUser, size: 28)
+                    } else if let avatar = profileImageManager.avatarImage {
+                        // ✅ Pre-fetched DiceBear
+                        Image(uiImage: avatar)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 28, height: 28)
+                            .clipShape(Circle())
                             .overlay(
                                 Circle().stroke(
                                     isActive ? Color.AccentColor : Color.AccentColor.opacity(0.3),
                                     lineWidth: isActive ? 1 : 0.5
                                 )
                             )
+                    } else {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(isActive ? Color.AccentColor : Color.AccentColor.opacity(0.4))
                     }
                 }
+
 //                    else {
 //                        Image(systemName: "person.circle.fill")
 //                            .font(.system(size: 24, weight: isActive ? .bold : .regular))

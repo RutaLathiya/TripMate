@@ -505,8 +505,9 @@ struct EditProfileView: View {
             
             do {
                 try context.save()
-                
-                // refresh UI everywhere
+                DispatchQueue.main.async {
+                    profileImageManager.profileImage = nil
+                }
                 profileImageManager.load(uid: uid, context: context)
                 
                 print("✅ Profile photo removed")

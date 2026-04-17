@@ -55,6 +55,7 @@
 //}
 
 import SwiftUI
+import CoreData
 
 struct ProfileCardView: View {
     
@@ -125,9 +126,34 @@ struct ProfileView: View {
 //                    Text("Seed: \(SessionVM.currentUser)")
 //                        .font(.caption)
 //                        .foregroundColor(.red)
-                    AvatarView(seed: SessionVM.currentUser, size: 100)
-                        .padding(.top, 30)
-                    
+                    Group {
+                        if let image = profileImageManager.profileImage {
+                            // Real photo
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 100, height: 100)
+                                .clipShape(Circle())
+
+                        } else if let avatar = profileImageManager.avatarImage {
+                            // ✅ Pre-fetched DiceBear — instant, no flash
+                            Image(uiImage: avatar)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 100, height: 100)
+                                .clipShape(Circle())
+
+                        } else {
+                            // Only shows briefly on very first launch
+                            Circle()
+                                .fill(Color.AccentColor.opacity(0.15))
+                                .frame(width: 100, height: 100)
+                                .overlay(
+                                    ProgressView().tint(Color.AccentColor)
+                                )
+                        }
+                    }
+                    .padding(.top, 30)
                     // Profile Options
                     ScrollView {
                         VStack(spacing: 15) {
@@ -139,7 +165,7 @@ struct ProfileView: View {
                                             showLogoutAlert = true
                                         } else if item == "my profile" {
                                             showEditProfile = true
-                                        } else if item == "Settings" {
+                                        } else if item == "settings" {
                                             showSettings = true
                                         }
                                     }
@@ -154,13 +180,22 @@ struct ProfileView: View {
             //            .navigationTitle("Profile")
             //            .navigationBarTitleDisplayMode(.large)
             
-            .navigationDestination(isPresented: $showSettings, destination: {
-                SettingsView()
-            })
+            .navigationDestination(isPresented: $showSettings) {
+                if let id = getUserObjectID() {
+                    SettingsView(userID: id)
+                } else {
+                    Text("User not found")
+                }
+            }
             .navigationDestination(isPresented: $showEditProfile)
             {
                  EditProfileView()
                     .environmentObject(profileImageManager)
+                    .onAppear {
+                        if let uid = SessionVM.currentUserUID {
+                            profileImageManager.load(uid: uid, context: context)
+                        }
+                    }
                     .onDisappear{
                         if let uid = SessionVM.currentUserUID{
                             profileImageManager.load(uid: uid, context: context)
@@ -170,6 +205,9 @@ struct ProfileView: View {
             
             .onAppear {
                 showLogoutAlert = false
+                if let uid = SessionVM.currentUserUID {
+                    profileImageManager.load(uid: uid, context: context)
+                }
                 print("🟢 currentUser: '\(SessionVM.currentUser)'")
                 print("🟢 URL: \(String(describing: AvatarHelper.url(seed: SessionVM.currentUser)))")
             }
@@ -178,6 +216,7 @@ struct ProfileView: View {
                 Button("Cancel", role: .cancel) { }
                 
                 Button("Logout", role: .destructive) {
+                    profileImageManager.clear()
                     SessionVM.logout()
                     //performLogout()
                     //                    print("🔴 Logout button tapped")
@@ -192,6 +231,14 @@ struct ProfileView: View {
                 Text("Are you sure you want to logout?")
             }
         }
+    }
+    private func getUserObjectID() -> NSManagedObjectID? {
+        guard let uuid = SessionVM.currentUserUID else { return nil }
+
+        let request: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "uid == %@", uuid as CVarArg)
+
+        return try? context.fetch(request).first?.objectID
     }
     func performLogout() {
             print("User logged out")
