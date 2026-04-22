@@ -222,8 +222,7 @@ struct RazorpayHTMLBuilder {
                 };
 
                 // Optionally pre-select payment method
-                \(preferredMethod != nil ? "options.method = { \(preferredMethod!): true };" : "")
-
+            // Show all payment methods
                 var rzp = new Razorpay(options);
 
                 rzp.on("payment.failed", function(response) {
@@ -297,7 +296,7 @@ actor RazorpayOrderService {
     //private let backendURL = "http://192.168.29.240:3000/api/payment/create-order"
     private let backendURL = "http://localhost:3000/api/payment/create-order"
     
-    func createOrder(amount: Double, tripId: Int, payerId: Int, receiverId: Int) async throws -> String {
+    func createOrder(amount: Double, tripId: Int, payerId: Int, receiverId: Int) async throws -> (orderId: String, dbPaymentId: Int?) {
         guard let url = URL(string: backendURL) else {
             throw URLError(.badURL)
         }
@@ -310,11 +309,12 @@ actor RazorpayOrderService {
         // request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
 
         let body: [String: Any] = [
-            "amount":      Int(amount * 100),   // Razorpay needs paise
-            "currency":    "INR",
-            "receipt":     "trip_\(tripId)_\(Int(Date().timeIntervalSince1970))",
-            "payer_id":    payerId,
-            "receiver_id": receiverId
+            "amount":             Int(amount * 100),
+            "currency":           "INR",
+            "receipt":            "trip_\(tripId)_\(Int(Date().timeIntervalSince1970))",
+            "trip_id":            tripId,
+            "payer_member_id":    payerId,
+            "receiver_member_id": receiverId
         ]
 
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -326,11 +326,15 @@ actor RazorpayOrderService {
             throw URLError(.badServerResponse)
         }
 
-        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let orderId = json["id"] as? String else {
-            throw URLError(.cannotParseResponse)
-        }
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        print("🔵 Backend response:", json ?? "nil")  // ← add this
 
-        return orderId
+            let orderId = json?["id"] as? String ?? ""
+            let dbPaymentId = json?["payment_id"] as? Int
+        print("🔵 orderId:", orderId)
+        print("🔵 dbPaymentId:", dbPaymentId ?? "nil")
+
+
+        return (orderId: orderId, dbPaymentId: dbPaymentId)
     }
 }

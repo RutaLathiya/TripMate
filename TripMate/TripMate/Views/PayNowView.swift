@@ -33,9 +33,10 @@ struct PayNowView: View {
     @State private var alertTitle      = ""
     @State private var alertMessage    = ""
     @State private var paymentOK       = false
+    @State private var dbPaymentId: Int? = nil
 
     // ✅ Replace with your Razorpay KEY ID (rzp_test_... for test mode)
-    private let razorpayKeyId = "rzp_test_SYWBOBTZAAqjmY"
+    private let razorpayKeyId = "rzp_test_Sc6QPGj4MvO6Of"
     private let orderService  = RazorpayOrderService()
 
     init(receiverName: String,
@@ -303,10 +304,8 @@ struct PayNowView: View {
     }
 
     // MARK: - Actions
-
     private func handlePayTap() {
         if selectedMethod == .cash {
-            // Save locally and mark done
             savePaymentRecord(paymentId: nil, status: .success)
             paymentOK    = true
             alertTitle   = "Marked as Paid"
@@ -318,14 +317,15 @@ struct PayNowView: View {
         isCreatingOrder = true
         Task {
             do {
-                let orderId = try await orderService.createOrder(
+                let result = try await orderService.createOrder(
                     amount: parsedAmount,
-                    tripId: 1,      // ← pass actual tripId
-                    payerId: 1,     // ← pass actual current user member_id
-                    receiverId: 1   // ← pass actual receiver member_id
+                    tripId: 1,
+                    payerId: 1,
+                    receiverId: 1
                 )
                 await MainActor.run {
-                    currentOrderId  = ""
+                    currentOrderId  = result.orderId   // ← use the real order ID
+                    dbPaymentId     = result.dbPaymentId 
                     isCreatingOrder = false
                     showCheckout    = true
                 }
@@ -339,28 +339,69 @@ struct PayNowView: View {
                 }
             }
         }
-            currentOrderId = ""
-            showCheckout   = true
     }
-
+    
     private func handleCheckoutResult(_ result: RazorpayResult) {
         switch result {
-        case .success(let paymentId, _, _):
-            savePaymentRecord(paymentId: paymentId, status: .success)
-            paymentOK    = true
-            alertTitle   = "Payment Successful"
-            alertMessage = "₹\(Int(parsedAmount)) paid to \(receiverName).\nID: \(paymentId)"
+        case .success(let paymentId, let orderId, let signature):
+            // Verify with backend
+            Task {
+                await verifyPayment(
+                    razorpayPaymentId: paymentId,
+                    razorpayOrderId: orderId,
+                    razorpaySignature: signature
+                )
+            }
 
         case .failure(_, let description):
             savePaymentRecord(paymentId: nil, status: .failed)
             paymentOK    = false
             alertTitle   = "Payment Failed"
             alertMessage = description
+            showAlert    = true
 
         case .dismissed:
             return
         }
-        showAlert = true
+    }
+
+    private func verifyPayment(razorpayPaymentId: String, razorpayOrderId: String, razorpaySignature: String) async {
+        guard let url = URL(string: "http://localhost:3000/api/payment/verify") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: Any] = [
+            "razorpay_order_id":   razorpayOrderId,
+            "razorpay_payment_id": razorpayPaymentId,
+            "razorpay_signature":  razorpaySignature,
+            "payment_id":          dbPaymentId ?? 0
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            let status = json?["status"] as? String ?? "failed"
+
+            await MainActor.run {
+                savePaymentRecord(paymentId: razorpayPaymentId, status: status == "success" ? .success : .failed)
+                paymentOK    = status == "success"
+                alertTitle   = status == "success" ? "Payment Successful" : "Verification Failed"
+                alertMessage = status == "success"
+                    ? "₹\(Int(parsedAmount)) paid to \(receiverName).\nID: \(razorpayPaymentId)"
+                    : "Payment could not be verified."
+                showAlert = true
+            }
+        } catch {
+            await MainActor.run {
+                alertTitle   = "Verification Error"
+                alertMessage = error.localizedDescription
+                showAlert    = true
+            }
+        }
     }
 
     private func savePaymentRecord(paymentId: String?, status: PaymentStatus) {
